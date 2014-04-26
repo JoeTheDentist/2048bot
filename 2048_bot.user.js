@@ -83,24 +83,20 @@ function get_best_move(matrix, size)
 // Recursive function for getting the best move
 function get_best_move_aux(matrix, size)
 {
-    // Temp constant for tests
-    var best_weight = 1000000000;
-    var best_matrix = undefined;
-    var best_move = undefined;
-    for (var move in MOVES)
+    var best_move = Math.floor(Math.random()*4);
+    var best_matrix = simulate_move(matrix, size, move);
+    var best_weight = get_weight(best_matrix, size);
+    for (var i=0; i<4; i++)
     {
+        var move = MOVES[i];
         var matrix_move = simulate_move(matrix, size, move);
-        console.log(matrix_move);
-        var weight = get_weight(matrix, size);
-        console.log(weight);
+        var weight = get_weight(matrix_move, size);
         if (weight < best_weight) {
             best_weight = weight;
             best_matrix = matrix_move;
             best_move = move;
         }
     }
-    console.log("###");
-    console.log(best_matrix);
     return [best_matrix, best_move, best_weight];
 }
 
@@ -188,7 +184,9 @@ function get_at(matrix, i, j, move)
 function get_weight(matrix, size)
 {
     // Just counting the non empty cells for now
+    console.log(matrix);
     var weight = 0;
+    var cell_map = {};
     for(var i=0; i<size; i++)
     {
         for(var j=0; j<size; j++)
@@ -199,6 +197,7 @@ function get_weight(matrix, size)
             }
         }
     }
+    console.log(weight);
     return weight;
 }
 
@@ -209,11 +208,11 @@ function main()
     var size = 4;
     gm = new GameManager(size, KeyboardInputManager, HTMLActuator, LocalStorageManager);
     grid = generate_matrix(size);
-    /*while (!over(gm))
-    {*/
+    while (!over(gm))
+    {
         refresh(grid, gm, size);
         gm.move(get_best_move(grid, size));
-    /*}*/
+    }
     console.log("###### Stopping 2048 bot ######");
 }
 
