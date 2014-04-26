@@ -75,13 +75,14 @@ function over(game_manager)
 // Get the current best possible move
 function get_best_move(matrix, size)
 {
-    get_best_move_aux(matrix, size);
-    return get_best_move_aux(matrix, size)[1];
-    //return Math.floor(Math.random()*4);
+    var best = get_best_move_aux(matrix, size, 2);
+    console.log(best[0]);
+    console.log(best[2]);
+    return best[1];
 }
 
 // Recursive function for getting the best move
-function get_best_move_aux(matrix, size)
+function get_best_move_aux(matrix, size, depth)
 {
     var best_move = Math.floor(Math.random()*4);
     var best_matrix = simulate_move(matrix, size, move);
@@ -90,7 +91,15 @@ function get_best_move_aux(matrix, size)
     {
         var move = MOVES[i];
         var matrix_move = simulate_move(matrix, size, move);
-        var weight = get_weight(matrix_move, size);
+        var weight = 0;
+        if (depth == 0)
+        {
+            weight = get_weight(matrix_move, size);
+        }
+        else
+        {
+            weight = get_best_move_aux(matrix_move, size, depth - 1)[2];
+        }
         if (weight < best_weight) {
             best_weight = weight;
             best_matrix = matrix_move;
@@ -183,8 +192,6 @@ function get_at(matrix, i, j, move)
 // Get the weight of the matrix. Metric to be able to compare solutions.
 function get_weight(matrix, size)
 {
-    // Just counting the non empty cells for now
-    console.log(matrix);
     var weight = 0;
     var cell_map = {};
     for(var i=0; i<size; i++)
@@ -197,23 +204,26 @@ function get_weight(matrix, size)
             }
         }
     }
-    console.log(weight);
     return weight;
+}
+
+function loop()
+{
+    if (!over(gm))
+    {
+        refresh(grid, gm, size);
+        gm.move(get_best_move(grid, size));
+    }
 }
 
 // Main function
 function main()
 {
     console.log("###### Starting 2048 bot ######");
-    var size = 4;
+    size = 4;
     gm = new GameManager(size, KeyboardInputManager, HTMLActuator, LocalStorageManager);
     grid = generate_matrix(size);
-    while (!over(gm))
-    {
-        refresh(grid, gm, size);
-        gm.move(get_best_move(grid, size));
-    }
-    console.log("###### Stopping 2048 bot ######");
+    setInterval(loop, 500);
 }
 
 main();
