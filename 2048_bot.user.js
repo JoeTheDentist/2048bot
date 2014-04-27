@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        2048 bot
+// @name        2048_bot
 // @namespace   2048_bot
 // @description Bot for the game 2048
 // @version     0.1.0
@@ -75,7 +75,7 @@ function over(game_manager)
 // Get the current best possible move
 function get_best_move(matrix, size)
 {
-    var best = get_best_move_aux(matrix, size, 2);
+    var best = get_best_move_aux(matrix, size, 3);
     console.log(best[0]);
     console.log(best[2]);
     return best[1];
@@ -216,14 +216,34 @@ function loop()
     }
 }
 
-// Main function
-function main()
+// Play mode (greasemonkey)
+function run()
 {
-    console.log("###### Starting 2048 bot ######");
+    console.log("### Running 2048 bot ###");
     size = 4;
     gm = new GameManager(size, KeyboardInputManager, HTMLActuator, LocalStorageManager);
     grid = generate_matrix(size);
     setInterval(loop, 500);
+}
+
+// Test mode (node.js)
+function test()
+{
+    console.log("### Testing 2048 bot funtions ###");
+    process.exit(0);
+}
+
+// Main function
+function main()
+{
+    if (process.argv.length == 3 && process.argv[2] == "-t")
+    {
+        test();
+    }
+    else
+    {
+        run();
+    }
 }
 
 main();
