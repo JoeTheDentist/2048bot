@@ -43,6 +43,22 @@ function copy_matrix(matrix, size)
     return new_matrix;
 }
 
+// Checks whether the two matrix are equal
+function equals_matrix(m1, m2, size)
+{
+    for(var i=0; i<size; i++)
+    {
+        for(var j=0; j<size; j++)
+        {
+            if (m1[i][j] != m2[i][j])
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 // Refresh matrix with raw cells
 function refresh_matrix(matrix, raw_cells, size)
 {
@@ -226,19 +242,60 @@ function run()
     setInterval(loop, 500);
 }
 
-// Test mode (node.js)
+//----------------------------------------------------------------------
+//---TESTING------------------------------------------------------------
+
+function function_name(fun) {
+  var ret = fun.toString();
+  ret = ret.substr('function '.length);
+  ret = ret.substr(0, ret.indexOf('('));
+  return ret;
+}
+
+// Test simulate_move function. Returns number of failed tests.
+function test_simulate_move()
+{
+    return 0;
+}
+
+// Test mode (with node.js)
 function test()
 {
-    console.log("### Testing 2048 bot funtions ###");
-    process.exit(0);
+    console.log("### Testing 2048 bot functions");
+    var functions = [test_simulate_move];
+    var failed_tests = 0;
+    for (var i=0; i<functions.length; i++)
+    {
+        var curr_failed_tests = functions[i]();
+        if (curr_failed_tests != 0)
+        {
+            console.log("===", curr_failed_tests, "test(s) failed for", function_name(functions[i]));
+        }
+        else
+        {
+            console.log("=== All tests for", function_name(functions[i]), "passed");
+        }
+        failed_tests += curr_failed_tests;
+    }
+    if (failed_tests != 0)
+    {
+        console.log("###", failed_tests, "test(s) failed in overall");
+    }
+    else
+    {
+        console.log("### All tests passed");
+    }
+    return failed_tests;
 }
 
 // Main function
 function main()
 {
-    if (process.argv.length == 3 && process.argv[2] == "-t")
+    // If running with node, this is for tests
+    if (typeof process != "undefined")
     {
-        test();
+        var failed_tests = test();
+        process.exit(code = failed_tests);
     }
     else
     {
