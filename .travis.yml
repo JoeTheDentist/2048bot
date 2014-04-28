@@ -1,0 +1,15 @@
+#
+# Travis configuration
+#
+
+# Source related
+language: node_js
+node_js:
+    - "0.11"
+
+# Branches
+branches:
+    only:
+        - master
+        - next
+        - util/testing

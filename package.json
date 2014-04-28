@@ -1,0 +1,1 @@
+{ "name" : "2048_bot", "version" : "0.1.0", "main" : "2048_bot.user.js", "scripts" : {"test" : "node 2048_bot.user.js"}}

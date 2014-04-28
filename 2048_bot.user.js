@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        2048 bot
+// @name        2048_bot
 // @namespace   2048_bot
 // @description Bot for the game 2048
 // @version     0.1.0
@@ -7,8 +7,11 @@
 // @include     http://gabrielecirulli.github.io/2048/
 // ==/UserScript==
 
-// Notes:
-// move codes 0: up, 1: right, 2: down, 3: left
+UP = 0;
+RIGHT = 1;
+DOWN = 2;
+LEFT = 3;
+MOVES = [UP, RIGHT, DOWN, LEFT];
 
 // Generate empty matrix (square)
 function generate_matrix(size)
@@ -23,6 +26,37 @@ function generate_matrix(size)
         }
     }
     return matrix;
+}
+
+// Create a new matrix with the same values
+function copy_matrix(matrix, size)
+{
+    var new_matrix = [];
+    for(var i=0; i<size; i++)
+    {
+        new_matrix[i] = [];
+        for(var j=0; j<size; j++)
+        {
+            new_matrix[i][j] = matrix[i][j];
+        }
+    }
+    return new_matrix;
+}
+
+// Checks whether the two matrix are equal
+function equals_matrix(m1, m2, size)
+{
+    for(var i=0; i<size; i++)
+    {
+        for(var j=0; j<size; j++)
+        {
+            if (m1[i][j] != m2[i][j])
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 // Refresh matrix with raw cells
@@ -44,7 +78,7 @@ function refresh_matrix(matrix, raw_cells, size)
 // Refresh with game data
 function refresh(matrix, game_manager, size)
 {
-    var raw_cells = eval('('+game_manager.storageManager.storage.gameState+')').grid.cells
+    var raw_cells = eval('('+game_manager.storageManager.storage.gameState+')').grid.cells;
     refresh_matrix(matrix, raw_cells, size);
 }
 
@@ -55,24 +89,210 @@ function over(game_manager)
 }
 
 // Get the current best possible move
-function get_best_move(matrix)
+function get_best_move(matrix, size)
 {
-    return Math.floor(Math.random()*4);
+    var best = get_best_move_aux(matrix, size, 3);
+    console.log(best[0]);
+    console.log(best[2]);
+    return best[1];
 }
 
-function main()
+// Recursive function for getting the best move
+function get_best_move_aux(matrix, size, depth)
 {
-    console.log("###### Starting 2048 bot ######");
-    var size = 4
-    var gm = new GameManager(size, KeyboardInputManager, HTMLActuator, LocalStorageManager);
-    var grid = generate_matrix(size);
-    var i = 0;
-    while (!over(gm))
+    var best_move = Math.floor(Math.random()*4);
+    var best_matrix = simulate_move(matrix, size, move);
+    var best_weight = get_weight(best_matrix, size);
+    for (var i=0; i<4; i++)
+    {
+        var move = MOVES[i];
+        var matrix_move = simulate_move(matrix, size, move);
+        var weight = 0;
+        if (depth == 0)
+        {
+            weight = get_weight(matrix_move, size);
+        }
+        else
+        {
+            weight = get_best_move_aux(matrix_move, size, depth - 1)[2];
+        }
+        if (weight < best_weight) {
+            best_weight = weight;
+            best_matrix = matrix_move;
+            best_move = move;
+        }
+    }
+    return [best_matrix, best_move, best_weight];
+}
+
+// Generate the new matrix with the given move
+function simulate_move(matrix, size, move)
+{
+    var new_matrix = copy_matrix(matrix, size);
+    for (var i = 0; i < size; i++)
+    {
+        var pos = 0;
+        var value = 0;
+        for (var j = 0; j < size; j++)
+        {
+            var new_value = get_at(new_matrix, i, j, move);
+            if (new_value == 0)
+            {
+                // Nothing to do here
+            }
+            else if (value == new_value)
+            {
+                set_at(new_matrix, i, pos, move, 2*value);
+                pos++;
+                value = 0;
+            }
+            else
+            {
+                if (value == 0)
+                {
+                    set_at(new_matrix, i, pos, move, new_value);
+                }
+                else
+                {
+                    //Was not able to merge.
+                    pos++;
+                }
+                value = new_value;
+            }
+        }
+        for (var j = pos+1; j < size; j++)
+        {
+            set_at(new_matrix, i, j, move, 0);
+        }
+    }
+    return new_matrix;
+}
+
+// Get the real position according to move
+function get_pos(i, j, move)
+{
+    var pos = [i, j];
+    if (move == RIGHT)
+    {
+        pos[1] = 3 - pos[1];
+    }
+    else if (move == DOWN)
+    {
+        var tmp = pos[1];
+        pos[1] = 3 - pos[0];
+        pos[0] = 3 - tmp;
+    }
+    else if (move == UP)
+    {
+        var tmp = pos[1];
+        pos[1] = pos[0];
+        pos[0] = tmp;
+    }
+    return pos;
+}
+
+// Set the value to the real pos
+function set_at(matrix, i, j, move, value)
+{
+    var pos = get_pos(i, j, move);
+    matrix[pos[0]][pos[1]] = value;
+}
+
+// Set the value to the real pos
+function get_at(matrix, i, j, move)
+{
+    var pos = get_pos(i, j, move);
+    return matrix[pos[0]][pos[1]];
+}
+
+// Get the weight of the matrix. Metric to be able to compare solutions.
+function get_weight(matrix, size)
+{
+    var weight = 0;
+    var cell_map = {};
+    for(var i=0; i<size; i++)
+    {
+        for(var j=0; j<size; j++)
+        {
+            if (matrix[i][j] != 0)
+            {
+                weight++;
+            }
+        }
+    }
+    return weight;
+}
+
+function loop()
+{
+    if (!over(gm))
     {
         refresh(grid, gm, size);
-        gm.move(get_best_move(grid));
+        gm.move(get_best_move(grid, size));
     }
-    console.log("###### Stopping 2048 bot ######");
+}
+
+// Play mode (greasemonkey)
+function run()
+{
+    console.log("### Running 2048 bot ###");
+    size = 4;
+    gm = new GameManager(size, KeyboardInputManager, HTMLActuator, LocalStorageManager);
+    grid = generate_matrix(size);
+    setInterval(loop, 500);
+}
+
+//----------------------------------------------------------------------
+//---TESTING------------------------------------------------------------
+
+function function_name(fun) {
+  var ret = fun.toString();
+  ret = ret.substr('function '.length);
+  ret = ret.substr(0, ret.indexOf('('));
+  return ret;
+}
+
+// Test simulate_move function. Returns number of failed tests.
+function test_simulate_move()
+{
+    return 0;
+}
+
+// Test mode (with node.js)
+function test()
+{
+    console.log("### Testing 2048 bot functions");
+    var functions = [test_simulate_move];
+    var failed_tests = 0;
+    for (var i=0; i<functions.length; i++)
+    {
+        var curr_failed_tests = functions[i]();
+        if (curr_failed_tests != 0)
+        {
+            console.log("===", curr_failed_tests, "test(s) failed for", function_name(functions[i]));
+        }
+        failed_tests += curr_failed_tests;
+    }
+    if (failed_tests != 0)
+    {
+        console.log("###", failed_tests, "test(s) failed in overall");
+    }
+    return failed_tests;
+}
+
+// Main function
+function main()
+{
+    // If running with node, this is for tests
+    if (typeof process != "undefined")
+    {
+        var failed_tests = test();
+        process.exit(code = failed_tests);
+    }
+    else
+    {
+        run();
+    }
 }
 
 main();
