@@ -277,7 +277,11 @@ function test_simulate_move()
                 [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 2, 0]],
                 [[0, 0, 0, 0], [2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0]]];
     multi_moves = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [4, 0, 0, 0]];
-    multi_merge = [[2, 2, 0, 0], [2, 2, 0, 0], [2, 2, 0, 0], [2, 2, 0, 0]];
+    multi_merge = [[2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2]];
+    multi_merge_down = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 4, 4, 4], [4, 4, 4, 4]];
+    multi_merge_up = [[8, 8, 8, 8], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    multi_merge_left = [[16, 16, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    multi_merge_right = [[0, 0, 0, 32], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
     for (var move in MOVES)
     {
         // Test one move
@@ -302,6 +306,19 @@ function test_simulate_move()
     {
         console.log("*** Test failed for multi move, returned", test3_matrix);
         count++;
+    }
+    var moves = [DOWN, UP, LEFT, RIGHT];
+    var multi_merge_array = [multi_merge_down, multi_merge_up, multi_merge_left, multi_merge_right];
+    var curr_mat = multi_merge;
+    for (var i=0; i<4; i++)
+    {
+        var test_matrix = simulate_move(curr_mat, 4, moves[i]);
+        if (!equals_matrix(test_matrix, multi_merge_array[i], 4))
+        {
+            console.log("*** Test failed for data", curr_mat, "and move", moves[i], "expecting", multi_merge_array[i], "returned", test_matrix);
+            count++;
+        }
+        curr_mat = multi_merge_array[i];
     }
     return count;
 }
