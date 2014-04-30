@@ -3,9 +3,14 @@
 #
 
 # Source related
-language: node_js
-node_js:
-    - "0.11"
+language: cpp
+# Defined in CXX
+compiler:
+    - gcc
+    - clang
+
+install: "cd cpp && make && cd .."
+script: "cd cpp && make check && cd .."
 
 # Branches
 branches:
