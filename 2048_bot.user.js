@@ -92,7 +92,7 @@ function over(game_manager)
 // Get the current best possible move
 function get_best_move(matrix, size)
 {
-    var best = get_best_move_aux(matrix, size, 3);
+    var best = get_best_move_aux(matrix, size, 2);
     console.log(best[0]);
     console.log(best[2]);
     return best[1];
@@ -104,7 +104,7 @@ function get_best_move_aux(matrix, size, depth)
     var best_move = Math.floor(Math.random()*4);
     var best_matrix = simulate_move(matrix, size, move);
     var best_weight = 0;
-    if (equals_matrix(best_matrix, matrix)) {
+    if (equals_matrix(best_matrix, matrix, size)) {
         best_weight = MAXWEIGHT + 1; // do not play that move
     }
     else {
@@ -115,7 +115,7 @@ function get_best_move_aux(matrix, size, depth)
         var move = MOVES[i];
         var matrix_move = simulate_move(matrix, size, move);
         var weight = MAXWEIGHT + 1;
-        if (equals_matrix(matrix_move, matrix)) {
+        if (equals_matrix(matrix_move, matrix, size)) {
             continue; // do not play that move
         }
         if (depth == 0)
@@ -267,58 +267,72 @@ function function_name(fun) {
   return ret;
 }
 
+function assert_matrix(in_m, out_m, exp_m, arg, size)
+{
+    if (!equals_matrix(out_m, exp_m, size))
+    {
+        console.log("*** Test failed for data", in_m, "and argument", arg, "expecting", exp_m, "returned", out_m);
+        return 1;
+    }
+    return 0;
+}
+
 // Test simulate_move function. Returns number of failed tests.
 function test_simulate_move()
 {
     var count = 0;
-    ref = [[0, 0, 0, 0], [0, 2, 0, 0], [0, 0, 2, 0], [0, 0, 0, 0]];
-    one_move = [[[0, 2, 2, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    var ref = [[0, 0, 0, 0], [0, 2, 0, 0], [0, 0, 2, 0], [0, 0, 0, 0]];
+    var one_move = [[[0, 2, 2, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
                 [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 2], [0, 0, 0, 0]],
                 [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 2, 0]],
                 [[0, 0, 0, 0], [2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0]]];
-    multi_moves = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [4, 0, 0, 0]];
-    multi_merge = [[2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2]];
-    multi_merge_down = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 4, 4, 4], [4, 4, 4, 4]];
-    multi_merge_up = [[8, 8, 8, 8], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
-    multi_merge_left = [[16, 16, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
-    multi_merge_right = [[0, 0, 0, 32], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    var multi_moves = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [4, 0, 0, 0]];
+    var multi_merge = [[2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2]];
+    var multi_merge_down = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 4, 4, 4], [4, 4, 4, 4]];
+    var multi_merge_up = [[8, 8, 8, 8], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    var multi_merge_left = [[16, 16, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    var multi_merge_right = [[0, 0, 0, 32], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
     for (var move in MOVES)
     {
         // Test one move
         var test_matrix = simulate_move(ref, 4, move);
-        if (!equals_matrix(test_matrix, one_move[move], 4))
-        {
-            console.log("*** Test failed for data", ref, "and move", move, "expecting", one_move[move], "returned", test_matrix);
-            count++;
-        }
+        count += assert_matrix(ref, test_matrix, one_move[move], move, 4);
         // Test the same move (should not change anything)
         var second_test_matrix = simulate_move(test_matrix, 4, move);
-        if (!equals_matrix(test_matrix, second_test_matrix, 4))
-        {
-            console.log("*** Test failed for data", test_matrix, "and move", move, "expecting", test_matrix, "returned", second_test_matrix);
-            count++;
-        }
+        count += assert_matrix(ref, second_test_matrix, one_move[move], move, 4);
     }
     var test1_matrix = simulate_move(ref, 4, UP);
     var test2_matrix = simulate_move(test1_matrix, 4, LEFT);
     var test3_matrix = simulate_move(test2_matrix, 4, DOWN);
-    if (!equals_matrix(test3_matrix, multi_moves, 4))
-    {
-        console.log("*** Test failed for multi move, returned", test3_matrix);
-        count++;
-    }
+    count += assert_matrix(0, test3_matrix, multi_moves, 0, 4);
     var moves = [DOWN, UP, LEFT, RIGHT];
     var multi_merge_array = [multi_merge_down, multi_merge_up, multi_merge_left, multi_merge_right];
     var curr_mat = multi_merge;
     for (var i=0; i<4; i++)
     {
         var test_matrix = simulate_move(curr_mat, 4, moves[i]);
-        if (!equals_matrix(test_matrix, multi_merge_array[i], 4))
-        {
-            console.log("*** Test failed for data", curr_mat, "and move", moves[i], "expecting", multi_merge_array[i], "returned", test_matrix);
-            count++;
-        }
+        count += assert_matrix(curr_mat, test_matrix, multi_merge_array[i], moves[i], 4);
         curr_mat = multi_merge_array[i];
+    }
+    return count;
+}
+
+// Test 
+function test_get_best_move_depth_1()
+{
+    var count = 0;
+    var ref1 = [[2, 2, 2, 2], [2, 2, 2, 2], [0, 0, 0, 0], [0, 0, 0, 0]];
+    var weight1 = get_weight(get_best_move_aux(ref1, 4, 0)[0], 4);
+    if (weight1 != 4)
+    {
+        console.log("*** Test failed for", ref1, "and depth", 0, "returned weight of", weight1, "instead of", 4);
+        count++;
+    }
+    var weight2 = get_best_move_aux(ref1, 4, 1)[2];
+    if (weight2 != 2)
+    {
+        console.log("*** Test failed for", ref1, "and depth", 1, "returned weight of", weight2, "instead of", 2);
+        count++;
     }
     return count;
 }
@@ -327,7 +341,7 @@ function test_simulate_move()
 function test()
 {
     console.log("### Testing 2048 bot functions");
-    var functions = [test_simulate_move];
+    var functions = [test_simulate_move, test_get_best_move_depth_1];
     var failed_tests = 0;
     for (var i=0; i<functions.length; i++)
     {
@@ -360,7 +374,7 @@ function main()
     if (typeof process != "undefined")
     {
         var failed_tests = test();
-        process.exit(code = failed_tests);
+        //process.exit(code = failed_tests);
     }
     else
     {
