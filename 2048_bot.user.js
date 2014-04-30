@@ -170,7 +170,12 @@ function simulate_move(matrix, size, move)
                 value = new_value;
             }
         }
-        for (var j = pos+1; j < size; j++)
+        var start = pos+1;
+        if (value == 0)
+        {
+            start = pos;
+        }
+        for (var j = start; j < size; j++)
         {
             set_at(new_matrix, i, j, move, 0);
         }
@@ -249,7 +254,7 @@ function run()
     size = 4;
     gm = new GameManager(size, KeyboardInputManager, HTMLActuator, LocalStorageManager);
     grid = generate_matrix(size);
-    setInterval(loop, 500);
+    setInterval(loop, 250);
 }
 
 //----------------------------------------------------------------------
@@ -265,7 +270,40 @@ function function_name(fun) {
 // Test simulate_move function. Returns number of failed tests.
 function test_simulate_move()
 {
-    return 0;
+    var count = 0;
+    ref = [[0, 0, 0, 0], [0, 2, 0, 0], [0, 0, 2, 0], [0, 0, 0, 0]];
+    one_move = [[[0, 2, 2, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 2], [0, 0, 0, 0]],
+                [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 2, 0]],
+                [[0, 0, 0, 0], [2, 0, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0]]];
+    multi_moves = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [4, 0, 0, 0]];
+    multi_merge = [[2, 2, 0, 0], [2, 2, 0, 0], [2, 2, 0, 0], [2, 2, 0, 0]];
+    for (var move in MOVES)
+    {
+        // Test one move
+        var test_matrix = simulate_move(ref, 4, move);
+        if (!equals_matrix(test_matrix, one_move[move], 4))
+        {
+            console.log("*** Test failed for data", ref, "and move", move, "expecting", one_move[move], "returned", test_matrix);
+            count++;
+        }
+        // Test the same move (should not change anything)
+        var second_test_matrix = simulate_move(test_matrix, 4, move);
+        if (!equals_matrix(test_matrix, second_test_matrix, 4))
+        {
+            console.log("*** Test failed for data", test_matrix, "and move", move, "expecting", test_matrix, "returned", second_test_matrix);
+            count++;
+        }
+    }
+    var test1_matrix = simulate_move(ref, 4, UP);
+    var test2_matrix = simulate_move(test1_matrix, 4, LEFT);
+    var test3_matrix = simulate_move(test2_matrix, 4, DOWN);
+    if (!equals_matrix(test3_matrix, multi_moves, 4))
+    {
+        console.log("*** Test failed for multi move, returned", test3_matrix);
+        count++;
+    }
+    return count;
 }
 
 // Test mode (with node.js)
