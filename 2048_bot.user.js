@@ -12,6 +12,7 @@ RIGHT = 1;
 DOWN = 2;
 LEFT = 3;
 MOVES = [UP, RIGHT, DOWN, LEFT];
+MAXWEIGHT = 16
 
 // Generate empty matrix (square)
 function generate_matrix(size)
@@ -102,12 +103,21 @@ function get_best_move_aux(matrix, size, depth)
 {
     var best_move = Math.floor(Math.random()*4);
     var best_matrix = simulate_move(matrix, size, move);
-    var best_weight = get_weight(best_matrix, size);
+    var best_weight = 0;
+    if (equals_matrix(best_matrix, matrix)) {
+        best_weight = MAXWEIGHT + 1; // do not play that move
+    }
+    else {
+        best_weight = get_weight(best_matrix, size);
+    }
     for (var i=0; i<4; i++)
     {
         var move = MOVES[i];
         var matrix_move = simulate_move(matrix, size, move);
-        var weight = 0;
+        var weight = MAXWEIGHT + 1;
+        if (equals_matrix(matrix_move, matrix)) {
+            continue; // do not play that move
+        }
         if (depth == 0)
         {
             weight = get_weight(matrix_move, size);
