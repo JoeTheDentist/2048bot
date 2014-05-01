@@ -50,6 +50,24 @@ public:
      */
     bool operator==(const GameMatrix &gm) const;
 
+    /**
+     * @brief Simulate the given move
+     * @param m
+     * @return new matrix with the move applied
+     */
+    GameMatrix simulate_move(move m) const;
+
+    /**
+     * @brief get_weight
+     * @return weight
+     */
+    uint get_weight() const;
+
+    /**
+     * @brief dump in stdout
+     */
+    void dump() const;
+
 private:
     uint _size;
     uint _matrix[4][4];
@@ -61,7 +79,7 @@ private:
      * @param m
      * @return real position
      */
-    position _get_pos(uint i, uint j, move m);
+    position _get_pos(uint i, uint j, move m) const;
 
     /**
      * @brief _get_at, helper function to get value (relies _get_pos)
@@ -70,7 +88,7 @@ private:
      * @param m
      * @return value in the real position
      */
-    uint _get_at(uint i, uint j, move m);
+    uint _get_at(uint i, uint j, move m) const;
 
     /**
      * @brief _set_at, helper function to set vale (relies on _get_pos)

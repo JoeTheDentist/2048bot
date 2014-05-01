@@ -11,6 +11,9 @@ test_lib:
 cgi:
 	${CXX} -g ${SRC} -I. -o ${CGI}
 
+run: cgi
+	./${CGI}
+
 check:
 	@echo "NO TEST YET"
 
