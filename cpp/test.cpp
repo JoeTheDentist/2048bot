@@ -2,6 +2,16 @@
 #include <gtest/gtest.h>
 #include <GameMatrix.h>
 
+TEST(GameMatrixTest, GetPosTest)
+{
+    uint matrix[4][4]   = {{0,0,0,0},{0,2,0,0},{0,0,2,0},{0,0,0,0}};
+    GameMatrix gm(matrix);
+    EXPECT_TRUE(gm._get_pos(2, 3, UP) == position(3, 2));
+    EXPECT_TRUE(gm._get_pos(2, 3, DOWN) == position(0, 2));
+    EXPECT_TRUE(gm._get_pos(2, 3, RIGHT) == position(2, 0));
+    EXPECT_TRUE(gm._get_pos(2, 3, LEFT) == position(2, 3));
+}
+
 TEST(GameMatrixTest, SimulateMoveSimple)
 {
     uint ref[4][4]   = {{0,0,0,0},{0,2,0,0},{0,0,2,0},{0,0,0,0}};

@@ -11,6 +11,10 @@ struct position
     position(uint i = 0, uint j = 0) : i(i), j(j) {}
     uint i;
     uint j;
+    bool operator==(const position& pos)
+    {
+        return i==pos.i && j==pos.j;
+    }
 };
 
 /**
@@ -68,10 +72,6 @@ public:
      */
     void dump() const;
 
-private:
-    uint _size;
-    uint _matrix[4][4];
-
     /**
      * @brief _get_pos, helper function to have only one way to treat positions
      * @param i
@@ -98,4 +98,8 @@ private:
      * @param value
      */
     void _set_at(uint i, uint j, move m, uint value);
+
+public:
+    uint _size;
+    uint _matrix[4][4];
 };
