@@ -41,7 +41,7 @@ public:
      * @param copy
      * @return copy
      */
-    GameMatrix & operator=(const GameMatrix &copy);
+    GameMatrix& operator=(const GameMatrix &copy);
 
     /**
      * @brief operator ==

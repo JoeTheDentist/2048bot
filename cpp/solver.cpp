@@ -7,6 +7,6 @@ int main()
     GameMatrix gm(m);
     GameMatrix gm_up = gm.simulate_move(UP);
     gm_up.dump();
-	return 0;
+    return 0;
 }
 

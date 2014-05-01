@@ -24,7 +24,7 @@ GameMatrix::GameMatrix(const GameMatrix &copy) : _size(copy._size) {
     }
 }
 
-GameMatrix & GameMatrix::operator=(const GameMatrix &copy)
+GameMatrix& GameMatrix::operator=(const GameMatrix &copy)
 {
     for (int i=0; i<_size; ++i)
     {
@@ -33,6 +33,7 @@ GameMatrix & GameMatrix::operator=(const GameMatrix &copy)
             _matrix[i][j] = copy._matrix[i][j];
         }
     }
+    return *this;
 }
 
 // Could be optimized storing a hash when updating the matrix
