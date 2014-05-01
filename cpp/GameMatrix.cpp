@@ -101,7 +101,7 @@ GameMatrix GameMatrix::simulate_move(move m) const
     return gm;
 }
 
-// Could be optimizing storing the weight at matrix update
+// Could be optimized storing the weight at matrix update
 uint GameMatrix::get_weight() const
 {
     uint weight = 0;
@@ -132,23 +132,46 @@ void GameMatrix::dump() const
 
 position GameMatrix::_get_pos(uint i, uint j, move m) const
 {
-    position pos(i,j);
+    /*
+     * i is the increment of the outer loop
+     * j is the increment of the inner loop
+     *
+     * if move LEFT then:
+     * go from left to right (j)
+     * and from top to bottom (i)
+     */
+    position pos(i, j);
+
     if (m == RIGHT)
     {
-        pos.j = _size - pos.j;
+        /*
+         * go from right to left (j)
+         * and from top to bottom (i)
+         */
+        pos.i = i;
+        pos.j = _size - j - 1;
     }
+
     else if (m == DOWN)
     {
-        uint tmp = pos.j;
-        pos.j = _size - pos.i;
-        pos.i = _size - tmp;
+        /*
+         * go from bottom to top (j)
+         * and from left to right (i)
+         */
+        pos.i = _size - j - 1;
+        pos.j = i;
     }
+
     else if (m == UP)
     {
-        uint tmp = pos.j;
-        pos.j = pos.i;
-        pos.i = tmp;
+        /*
+         * go from top to bottom (j)
+         * and from left to right (i)
+         */
+        pos.j = i;
+        pos.i = j;
     }
+
     return pos;
 }
 
