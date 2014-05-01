@@ -22,9 +22,8 @@ public:
     /**
      * @brief GameMatrix constructor
      * @param m input matrix
-     * @param size
      */
-    GameMatrix(uint **m, uint size);
+    GameMatrix(const uint (&m)[4][4]);
 
     /**
      *  @brief GameMatrix destructor
@@ -37,8 +36,23 @@ public:
      */
     GameMatrix(const GameMatrix &copy);
 
+    /**
+     * @brief Copy assignment
+     * @param copy
+     * @return copy
+     */
+    GameMatrix & operator=(const GameMatrix &copy);
+
+    /**
+     * @brief operator ==
+     * @param gm
+     * @return whether the two objects are equal
+     */
+    bool operator==(const GameMatrix &gm) const;
+
 private:
     uint _size;
+    uint _matrix[4][4];
 
     /**
      * @brief _get_pos, helper function to have only one way to treat positions
