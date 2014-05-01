@@ -9,7 +9,7 @@ test_lib:
 	${CXX} -fPIC -shared ${SRC} -I. -o ${TEST_LIB}
 
 cgi:
-	${CXX} ${SRC} -I. -o ${CGI}
+	${CXX} -g ${SRC} -I. -o ${CGI}
 
 check:
 	@echo "NO TEST YET"
