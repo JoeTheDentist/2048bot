@@ -83,6 +83,7 @@ GameMatrix GameMatrix::simulate_move(move m) const
                 else
                 {
                     ++pos;
+                    gm._set_at(i, pos, m, new_value);
                 }
                 value = new_value;
             }

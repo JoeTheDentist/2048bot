@@ -28,6 +28,22 @@ TEST(GameMatrixTest, SimulateMoveSimple)
     }
 }
 
+TEST(GameMatrixTest, SimulateMoveMoreComplex)
+{
+    uint ref[4][4]   = {{2,2,2,2},{2,2,2,2},{4,4,4,4},{8,8,8,8}};
+    uint exp[4][4][4]    = {{{4,4,4,4},{4,4,4,4},{8,8,8,8},{0,0,0,0}},
+                            {{0,0,4,4},{0,0,4,4},{0,0,8,8},{0,0,16,16}},
+                            {{0,0,0,0},{4,4,4,4},{4,4,4,4},{8,8,8,8}},
+                            {{4,4,0,0},{4,4,0,0},{8,8,0,0},{16,16,0,0}}};
+    GameMatrix g_ref(ref);
+    for (uint m=0; m<4; ++m)
+    {
+        GameMatrix g_exp(exp[m]);
+        GameMatrix g_res = g_ref.simulate_move((move)m);
+        EXPECT_TRUE(g_exp == g_res);
+    }
+}
+
 TEST(GameMatrixTest, SimulateMoveUniformMatrix)
 {
     uint ref[4][4]   = {{2,2,2,2},{2,2,2,2},{2,2,2,2},{2,2,2,2}};
@@ -43,16 +59,6 @@ TEST(GameMatrixTest, SimulateMoveUniformMatrix)
         EXPECT_TRUE(g_new == g_exp);
         curr_mat = g_new;
     }
-}
-
-TEST(GameMatrixTest, SimulateMoveMix)
-{
-    uint ref[4][4]   = {{2,2,2,2},{2,2,2,2},{4,4,4,4},{8,8,8,8}};
-    uint exp[4][4]   = {{4,4,4,4},{4,4,4,4},{8,8,8,8},{0,0,0,0}};
-    GameMatrix g_ref(ref);
-    GameMatrix g_exp(exp);
-    GameMatrix g_out = g_ref.simulate_move(UP);
-    EXPECT_TRUE(g_out == g_exp);
 }
 
 int main(int argc, char **argv)
