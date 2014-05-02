@@ -45,6 +45,16 @@ TEST(GameMatrixTest, SimulateMoveUniformMatrix)
     }
 }
 
+TEST(GameMatrixTest, SimulateMoveMix)
+{
+    uint ref[4][4]   = {{2,2,2,2},{2,2,2,2},{4,4,4,4},{8,8,8,8}};
+    uint exp[4][4]   = {{4,4,4,4},{4,4,4,4},{8,8,8,8},{0,0,0,0}};
+    GameMatrix g_ref(ref);
+    GameMatrix g_exp(exp);
+    GameMatrix g_out = g_ref.simulate_move(UP);
+    EXPECT_TRUE(g_out == g_exp);
+}
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
