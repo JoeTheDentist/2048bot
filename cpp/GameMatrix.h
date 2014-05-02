@@ -92,8 +92,9 @@ public:
     /**
      * @brief do the move
      * @param move to apply
+     * @return true if move is valid (i.e. something has changed on the board)
      */
-    void do_move(move m);
+    bool do_move(move m);
 
     /**
      * @brief get_weight
