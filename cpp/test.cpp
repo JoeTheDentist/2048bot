@@ -1,4 +1,5 @@
 
+#include <stdio.h>
 #include <gtest/gtest.h>
 #include <GameMatrix.h>
 
@@ -20,15 +21,40 @@ TEST(GameMatrixTest, SimulateMoveSimple)
                             {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,2,2,0}},
                             {{0,0,0,0},{2,0,0,0},{2,0,0,0},{0,0,0,0}}};
     GameMatrix g_ref(ref);
+    printf("initial matrix:\n");
+    g_ref.dump();
     for (uint m=0; m<4; ++m)
     {
         GameMatrix g_exp(exp[m]);
         GameMatrix g_res = g_ref.simulate_move((move)m);
+        printf("expected matrix:\n");
         g_exp.dump();
+        printf("result matrix:\n");
         g_res.dump();
         EXPECT_TRUE(g_exp == g_res);
     }
+}
 
+TEST(GameMatrixTest, SimulateMoveMoreComplex)
+{
+    uint ref[4][4]   = {{2,2,2,2},{2,2,2,2},{4,4,4,4},{8,8,8,8}};
+    uint exp[4][4][4]    = {{{4,4,4,4},{4,4,4,4},{8,8,8,8},{0,0,0,0}},
+                            {{0,0,4,4},{0,0,4,4},{0,0,8,8},{0,0,16,16}},
+                            {{0,0,0,0},{4,4,4,4},{4,4,4,4},{8,8,8,8}},
+                            {{4,4,0,0},{4,4,0,0},{8,8,0,0},{16,16,0,0}}};
+    GameMatrix g_ref(ref);
+    printf("initial matrix:\n");
+    g_ref.dump();
+    for (uint m=0; m<4; ++m)
+    {
+        GameMatrix g_exp(exp[m]);
+        GameMatrix g_res = g_ref.simulate_move((move)m);
+        printf("expected matrix:\n");
+        g_exp.dump();
+        printf("result matrix:\n");
+        g_res.dump();
+        EXPECT_TRUE(g_exp == g_res);
+    }
 }
 
 int main(int argc, char **argv)
