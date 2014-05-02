@@ -1,19 +1,23 @@
 
 CGI=solver.cgi
-TEST_LIB=solver.so
-SRC=solver.cpp GameMatrix.cpp
+SRC_CGI=solver.cpp GameMatrix.cpp
+TST=test
+SRC_TST=test.cpp GameMatrix.cpp
 
-all: test_lib cgi
+all: ${TST} ${CGI}
 
-test_lib:
-	${CXX} -fPIC -shared ${SRC} -I. -o ${TEST_LIB}
+${TST}:
+	${CXX} ${SRC_TST} -I. -pthread -Wl,-Bstatic -lgtest -Wl,-Bdynamic -o ${TST}
 
-cgi:
-	${CXX} -g ${SRC} -I. -o ${CGI}
+${CGI}:
+	${CXX} ${SRC_CGI} -I. -o ${CGI}
 
-check:
-	@echo "NO TEST YET"
+run: ${CGI}
+	./${CGI}
+
+check: ${TST}
+	./${TST}
 
 clean:
-	rm -f *.so *.cgi *.o
+	rm -f ${CGI} ${TST} *.o
 

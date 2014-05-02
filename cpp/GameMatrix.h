@@ -11,6 +11,10 @@ struct position
     position(uint i = 0, uint j = 0) : i(i), j(j) {}
     uint i;
     uint j;
+    bool operator==(const position& pos)
+    {
+        return i==pos.i && j==pos.j;
+    }
 };
 
 /**
@@ -41,7 +45,7 @@ public:
      * @param copy
      * @return copy
      */
-    GameMatrix & operator=(const GameMatrix &copy);
+    GameMatrix& operator=(const GameMatrix &copy);
 
     /**
      * @brief operator ==
@@ -50,9 +54,23 @@ public:
      */
     bool operator==(const GameMatrix &gm) const;
 
-private:
-    uint _size;
-    uint _matrix[4][4];
+    /**
+     * @brief Simulate the given move
+     * @param m
+     * @return new matrix with the move applied
+     */
+    GameMatrix simulate_move(move m) const;
+
+    /**
+     * @brief get_weight
+     * @return weight
+     */
+    uint get_weight() const;
+
+    /**
+     * @brief dump in stdout
+     */
+    void dump() const;
 
     /**
      * @brief _get_pos, helper function to have only one way to treat positions
@@ -61,7 +79,7 @@ private:
      * @param m
      * @return real position
      */
-    position _get_pos(uint i, uint j, move m);
+    position _get_pos(uint i, uint j, move m) const;
 
     /**
      * @brief _get_at, helper function to get value (relies _get_pos)
@@ -70,7 +88,7 @@ private:
      * @param m
      * @return value in the real position
      */
-    uint _get_at(uint i, uint j, move m);
+    uint _get_at(uint i, uint j, move m) const;
 
     /**
      * @brief _set_at, helper function to set vale (relies on _get_pos)
@@ -80,4 +98,8 @@ private:
      * @param value
      */
     void _set_at(uint i, uint j, move m, uint value);
+
+public:
+    uint _size;
+    uint _matrix[4][4];
 };
