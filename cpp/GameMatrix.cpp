@@ -76,15 +76,11 @@ GameMatrix GameMatrix::simulate_move(move m) const
             else
             {
                 // cannot merge
-                if (value == 0)
-                {
-                    gm._set_at(i, pos, m, new_value);
-                }
-                else
+                if (value != 0)
                 {
                     ++pos;
-                    gm._set_at(i, pos, m, new_value);
                 }
+                gm._set_at(i, pos, m, new_value);
                 value = new_value;
             }
         }
