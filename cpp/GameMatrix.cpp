@@ -1,8 +1,24 @@
 
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 #include <GameMatrix.h>
 
-GameMatrix::GameMatrix(const uint (&m)[4][4]) : _size(4) {
+GameMatrix::GameMatrix() : _size(4), _tmp_vector(16) {
+    std::srand(std::time(0));
+    for (int i=0; i<_size; ++i)
+    {
+        for (int j=0; j<_size; ++j)
+        {
+            _matrix[i][j] = 0;
+        }
+    }
+    fill_random_cell();
+    fill_random_cell();
+}
+
+GameMatrix::GameMatrix(const uint (&m)[4][4]) : _size(4), _tmp_vector(16) {
+    std::srand(std::time(0));
     for (int i=0; i<_size; ++i)
     {
         for (int j=0; j<_size; ++j)
@@ -55,6 +71,12 @@ bool GameMatrix::operator==(const GameMatrix &gm) const
 GameMatrix GameMatrix::simulate_move(move m) const
 {
     GameMatrix gm(*this);
+    gm.do_move(m);
+    return gm;
+}
+
+void GameMatrix::do_move(move m)
+{
     for (uint i=0; i<_size; ++i)
     {
         uint pos = 0;
@@ -69,7 +91,7 @@ GameMatrix GameMatrix::simulate_move(move m) const
             else if (value == new_value)
             {
                 // same cells, can merge
-                gm._set_at(i, pos, m, 2 * value);
+                _set_at(i, pos, m, 2 * value);
                 ++pos;
                 value = 0;
             }
@@ -80,7 +102,7 @@ GameMatrix GameMatrix::simulate_move(move m) const
                 {
                     ++pos;
                 }
-                gm._set_at(i, pos, m, new_value);
+                _set_at(i, pos, m, new_value);
                 value = new_value;
             }
         }
@@ -92,10 +114,9 @@ GameMatrix GameMatrix::simulate_move(move m) const
         }
         for (uint j=start; j<_size; ++j)
         {
-            gm._set_at(i, j, m, 0);
+            _set_at(i, j, m, 0);
         }
     }
-    return gm;
 }
 
 // Could be optimized storing the weight at matrix update
@@ -113,6 +134,59 @@ uint GameMatrix::get_weight() const
         }
     }
     return weight;
+}
+
+void GameMatrix::get_free_cells(std::vector<position> &v) const
+{
+    // the stl documentation does not provide guarantee that the vector is not
+    // resized. It says it does not guarantee rezise so I guess it is possible
+    // to have a resize. If it is the case, find a way to prevent it.
+    // We don't want the vector to be resized.
+    // Also check whether it is O(n) or O(1), according to documentation, it is
+    // O(1) only for scalars and PODs (should be the case here).
+    // The operation have to be O(1).
+    v.clear();
+    for (int i=0; i<_size; ++i)
+    {
+        for (int j=0; j<_size; ++j)
+        {
+            if (_matrix[i][j] == 0)
+            {
+                v.push_back(position(i,j));
+            }
+        }
+    }
+}
+
+void GameMatrix::fill_random_cell()
+{
+    get_free_cells(_tmp_vector);
+    position rand_pos = _tmp_vector[rand() % _tmp_vector.size()];
+    // to check, I wonder if it is possible to have a 4 sometimes
+    _matrix[rand_pos.i][rand_pos.j] = 2;
+}
+
+bool GameMatrix::can_move() const
+{
+    uint weight = get_weight();
+    if (weight != _size * _size)
+    {
+        return true;
+    }
+    for (uint i=0; i<4; ++i)
+    {
+        GameMatrix gm = simulate_move(static_cast<move>(i));
+        if (gm == *this)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+move GameMatrix::get_best_move() const
+{
+    return _get_best_move(2).m;
 }
 
 void GameMatrix::dump() const
@@ -182,4 +256,44 @@ void GameMatrix::_set_at(uint i, uint j, move m, uint value)
 {
     position p = _get_pos(i,j,m);
     _matrix[p.i][p.j] = value;
+}
+
+move_action GameMatrix::_get_best_move(uint depth) const
+{
+    move best_move = static_cast<move>(std::rand() % 4);
+    GameMatrix best_matrix = simulate_move(best_move);
+    uint best_weight = 0;
+    if (*this == best_matrix)
+    {
+        best_weight = 17;
+    }
+    else
+    {
+        best_weight = best_matrix.get_weight();
+    }
+    for (uint i=0; i<4; ++i)
+    {
+        move m = static_cast<move>(i);
+        GameMatrix current_matrix = simulate_move(m);
+        uint current_weight = 17;
+        if (*this == current_matrix)
+        {
+            continue;
+        }
+        if (depth == 0)
+        {
+            current_weight = current_matrix.get_weight();
+        }
+        else
+        {
+            current_weight = current_matrix._get_best_move(depth - 1).weight;
+        }
+        if (best_weight > current_weight)
+        {
+            best_matrix = current_matrix;
+            best_move = m;
+            best_weight = current_weight;
+        }
+    }
+    return move_action(best_matrix, best_weight, best_move);
 }

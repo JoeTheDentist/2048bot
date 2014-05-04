@@ -61,6 +61,14 @@ TEST(GameMatrixTest, SimulateMoveUniformMatrix)
     }
 }
 
+TEST(GameMatrixTest, GetBestMoveSimple)
+{
+    uint ref[4][4]   = {{0,0,0,0},{0,0,2,0},{0,0,2,0},{0,0,0,0}};
+    GameMatrix g_ref(ref);
+    move best_move = g_ref.get_best_move();
+    EXPECT_TRUE(best_move == UP || best_move == DOWN);
+}
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
