@@ -68,6 +68,11 @@ bool GameMatrix::operator==(const GameMatrix &gm) const
     return true;
 }
 
+bool GameMatrix::operator!=(const GameMatrix &gm) const
+{
+    return !(*this == gm);
+}
+
 GameMatrix GameMatrix::simulate_move(move m) const
 {
     GameMatrix gm(*this);
@@ -119,21 +124,26 @@ void GameMatrix::do_move(move m)
     }
 }
 
-// Could be optimized storing the weight at matrix update
 uint GameMatrix::get_weight() const
 {
-    uint weight = 0;
+    return free_cells_count();
+}
+
+// Could be optimized storing the count at matrix update
+uint GameMatrix::free_cells_count() const
+{
+    uint count = 0;
     for (int i=0; i<_size; ++i)
     {
         for (int j=0; j<_size; ++j)
         {
             if (_matrix[i][j] != 0)
             {
-                ++weight;
+                ++count;
             }
         }
     }
-    return weight;
+    return count;
 }
 
 void GameMatrix::get_free_cells(std::vector<position> &v) const
@@ -161,6 +171,10 @@ void GameMatrix::get_free_cells(std::vector<position> &v) const
 void GameMatrix::fill_random_cell()
 {
     get_free_cells(_tmp_vector);
+    if (_tmp_vector.size() == 0)
+    {
+        dump();
+    }
     position rand_pos = _tmp_vector[rand() % _tmp_vector.size()];
     // to check, I wonder if it is possible to have a 4 sometimes
     _matrix[rand_pos.i][rand_pos.j] = 2;
@@ -168,15 +182,15 @@ void GameMatrix::fill_random_cell()
 
 bool GameMatrix::can_move() const
 {
-    uint weight = get_weight();
-    if (weight != _size * _size)
+    uint free_cells = free_cells_count();
+    if (free_cells != _size * _size)
     {
         return true;
     }
     for (uint i=0; i<4; ++i)
     {
         GameMatrix gm = simulate_move(static_cast<move>(i));
-        if (gm == *this)
+        if (gm != *this)
         {
             return true;
         }

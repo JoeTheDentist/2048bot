@@ -66,6 +66,13 @@ public:
     bool operator==(const GameMatrix &gm) const;
 
     /**
+     * @brief operator ==
+     * @param gm
+     * @return whether the two objects are different
+     */
+    bool operator!=(const GameMatrix &gm) const;
+
+    /**
      * @brief Simulate the given move
      * @param move to simulate
      * @return new matrix with the move applied
@@ -84,6 +91,12 @@ public:
      */
     uint get_weight() const;
 
+    /**
+     * @brief number of free cells
+     * @return number of free cells
+     */
+    uint free_cells_count() const;
+    
     /**
      * @brief get empty cells
      * @param vector to fill with the empty positions

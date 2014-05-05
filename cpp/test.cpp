@@ -1,6 +1,7 @@
 
 #include <gtest/gtest.h>
 #include <GameMatrix.h>
+#include <Simulator.h>
 
 TEST(GameMatrixTest, GetPosTest)
 {
@@ -67,6 +68,21 @@ TEST(GameMatrixTest, GetBestMoveSimple)
     GameMatrix g_ref(ref);
     move best_move = g_ref.get_best_move();
     EXPECT_TRUE(best_move == UP || best_move == DOWN);
+}
+
+TEST(SimulatorTest, SimpleGame)
+{
+    Simulator s;
+    s.play();
+}
+
+TEST(SimulatorTest, MultipleGames)
+{
+    Simulator s;
+    for (int i=0; i<10; ++i)
+    {
+        s.play();
+    }
 }
 
 int main(int argc, char **argv)
