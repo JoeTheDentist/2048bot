@@ -1,14 +1,12 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <ctime>
 #include <GameMatrix.h>
 
-GameMatrix::GameMatrix() : _size(4), _tmp_vector(16) {
-    std::srand(std::time(0));
-    for (int i=0; i<_size; ++i)
+GameMatrix::GameMatrix() : _tmp_vector(16) {
+    for (int i=0; i<SIZE; ++i)
     {
-        for (int j=0; j<_size; ++j)
+        for (int j=0; j<SIZE; ++j)
         {
             _matrix[i][j] = 0;
         }
@@ -17,11 +15,10 @@ GameMatrix::GameMatrix() : _size(4), _tmp_vector(16) {
     fill_random_cell();
 }
 
-GameMatrix::GameMatrix(const uint (&m)[4][4]) : _size(4), _tmp_vector(16) {
-    std::srand(std::time(0));
-    for (int i=0; i<_size; ++i)
+GameMatrix::GameMatrix(const uint (&m)[4][4]) : _tmp_vector(16) {
+    for (int i=0; i<SIZE; ++i)
     {
-        for (int j=0; j<_size; ++j)
+        for (int j=0; j<SIZE; ++j)
         {
             _matrix[i][j] = m[i][j];
         }
@@ -30,10 +27,10 @@ GameMatrix::GameMatrix(const uint (&m)[4][4]) : _size(4), _tmp_vector(16) {
 
 GameMatrix::~GameMatrix() {}
 
-GameMatrix::GameMatrix(const GameMatrix &copy) : _size(copy._size) {
-    for (int i=0; i<_size; ++i)
+GameMatrix::GameMatrix(const GameMatrix &copy) {
+    for (int i=0; i<SIZE; ++i)
     {
-        for (int j=0; j<_size; ++j)
+        for (int j=0; j<SIZE; ++j)
         {
             _matrix[i][j] = copy._matrix[i][j];
         }
@@ -42,9 +39,9 @@ GameMatrix::GameMatrix(const GameMatrix &copy) : _size(copy._size) {
 
 GameMatrix& GameMatrix::operator=(const GameMatrix &copy)
 {
-    for (int i=0; i<_size; ++i)
+    for (int i=0; i<SIZE; ++i)
     {
-        for (int j=0; j<_size; ++j)
+        for (int j=0; j<SIZE; ++j)
         {
             _matrix[i][j] = copy._matrix[i][j];
         }
@@ -55,9 +52,9 @@ GameMatrix& GameMatrix::operator=(const GameMatrix &copy)
 // Could be optimized storing a hash when updating the matrix
 bool GameMatrix::operator==(const GameMatrix &gm) const
 {
-    for (int i=0; i<_size; ++i)
+    for (int i=0; i<SIZE; ++i)
     {
-        for (int j=0; j<_size; ++j)
+        for (int j=0; j<SIZE; ++j)
         {
             if (_matrix[i][j] != gm._matrix[i][j])
             {
@@ -82,11 +79,11 @@ GameMatrix GameMatrix::simulate_move(move m) const
 
 void GameMatrix::do_move(move m)
 {
-    for (uint i=0; i<_size; ++i)
+    for (uint i=0; i<SIZE; ++i)
     {
         uint pos = 0;
         uint value = 0;
-        for (uint j=0; j<_size; ++j)
+        for (uint j=0; j<SIZE; ++j)
         {
             uint new_value = _get_at(i, j, m);
             if (new_value == 0)
@@ -117,7 +114,7 @@ void GameMatrix::do_move(move m)
         {
             start = pos;
         }
-        for (uint j=start; j<_size; ++j)
+        for (uint j=start; j<SIZE; ++j)
         {
             _set_at(i, j, m, 0);
         }
@@ -133,9 +130,9 @@ uint GameMatrix::get_weight() const
 uint GameMatrix::free_cells_count() const
 {
     uint count = 0;
-    for (int i=0; i<_size; ++i)
+    for (int i=0; i<SIZE; ++i)
     {
-        for (int j=0; j<_size; ++j)
+        for (int j=0; j<SIZE; ++j)
         {
             if (_matrix[i][j] != 0)
             {
@@ -156,9 +153,9 @@ void GameMatrix::get_free_cells(std::vector<position> &v) const
     // O(1) only for scalars and PODs (should be the case here).
     // The operation have to be O(1).
     v.clear();
-    for (int i=0; i<_size; ++i)
+    for (int i=0; i<SIZE; ++i)
     {
-        for (int j=0; j<_size; ++j)
+        for (int j=0; j<SIZE; ++j)
         {
             if (_matrix[i][j] == 0)
             {
@@ -183,7 +180,7 @@ void GameMatrix::fill_random_cell()
 bool GameMatrix::can_move() const
 {
     uint free_cells = free_cells_count();
-    if (free_cells != _size * _size)
+    if (free_cells != M_SIZE)
     {
         return true;
     }
@@ -200,14 +197,14 @@ bool GameMatrix::can_move() const
 
 move GameMatrix::get_best_move() const
 {
-    return _get_best_move(2).m;
+    return _get_best_move(5).m;
 }
 
 void GameMatrix::dump() const
 {
-    for (int i=0; i<_size; ++i)
+    for (int i=0; i<SIZE; ++i)
     {
-        for (int j=0; j<_size; ++j)
+        for (int j=0; j<SIZE; ++j)
         {
             std::cout << _matrix[i][j] << "\t";
         }
@@ -234,7 +231,7 @@ position GameMatrix::_get_pos(uint i, uint j, move m) const
          * and from top to bottom (i)
          */
         pos.i = i;
-        pos.j = _size - j - 1;
+        pos.j = SIZE - j - 1;
     }
 
     else if (m == DOWN)
@@ -243,7 +240,7 @@ position GameMatrix::_get_pos(uint i, uint j, move m) const
          * go from bottom to top (j)
          * and from left to right (i)
          */
-        pos.i = _size - j - 1;
+        pos.i = SIZE - j - 1;
         pos.j = i;
     }
 
@@ -279,7 +276,7 @@ move_action GameMatrix::_get_best_move(uint depth) const
     uint best_weight = 0;
     if (*this == best_matrix)
     {
-        best_weight = 17;
+        best_weight = M_SIZE + 1;
     }
     else
     {
@@ -289,7 +286,7 @@ move_action GameMatrix::_get_best_move(uint depth) const
     {
         move m = static_cast<move>(i);
         GameMatrix current_matrix = simulate_move(m);
-        uint current_weight = 17;
+        uint current_weight = M_SIZE + 1;
         if (*this == current_matrix)
         {
             continue;
@@ -304,10 +301,9 @@ move_action GameMatrix::_get_best_move(uint depth) const
         }
         if (best_weight > current_weight)
         {
-            best_matrix = current_matrix;
             best_move = m;
             best_weight = current_weight;
         }
     }
-    return move_action(best_matrix, best_weight, best_move);
+    return move_action(best_weight, best_move);
 }

@@ -8,7 +8,7 @@ SRC_TST=test.cpp ${SRC_COMMON}
 all: clean ${TST} ${CGI}
 
 ${TST}:
-	${CXX} ${SRC_TST} -I. -pthread -Wl,-Bstatic -lgtest -Wl,-Bdynamic -o ${TST}
+	${CXX} -O2 ${SRC_TST} -I. -pthread -Wl,-Bstatic -lgtest -Wl,-Bdynamic -o ${TST}
 
 ${CGI}:
 	${CXX} ${SRC_CGI} -I. -o ${CGI}
