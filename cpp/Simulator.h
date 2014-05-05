@@ -19,19 +19,11 @@ public:
     ~Simulator();
     
     /**
-     * @brief simulate a round
+     * @brief simulate a full game
+     * @return number of move for the game
+     * @todo allow different implementations of game matrix
      */
-    void game_loop();
-
-    /**
-     * @brief play once
-     */
-    void play_once();
-
-private:
-    // should be an interface to simulate multiple 
-    GameMatrix _gm;
-    std::vector<position> _free_cells;
+    uint play();
 };
 
 #endif
