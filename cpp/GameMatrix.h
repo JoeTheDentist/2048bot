@@ -4,6 +4,9 @@
 
 #include <vector>
 
+#define SIZE 4
+#define M_SIZE 16
+
 typedef unsigned int uint;
 struct move_action;
 
@@ -23,6 +26,13 @@ struct position
     }
 };
 
+struct move_action
+{
+    move_action(uint weight, move m) : weight(weight), m(m) {}
+    uint weight;
+    move m;
+};
+
 /**
  * @brief The GameMatrix class (square matrix, size x size)
  */
@@ -38,7 +48,7 @@ public:
      * @brief GameMatrix constructor
      * @param m input matrix
      */
-    GameMatrix(const uint (&m)[4][4]);
+    GameMatrix(const uint (&m)[SIZE][SIZE]);
 
     /**
      *  @brief GameMatrix destructor
@@ -162,17 +172,8 @@ public:
     move_action _get_best_move(uint depth = 0) const;
 
 private:
-    uint _size;
-    uint _matrix[4][4];
+    uint _matrix[SIZE][SIZE];
     std::vector<position> _tmp_vector;
-};
-
-struct move_action
-{
-    move_action(GameMatrix gm, uint weight, move m) : gm(gm), weight(weight), m(m) {}
-    GameMatrix gm;
-    uint weight;
-    move m;
 };
 
 #endif

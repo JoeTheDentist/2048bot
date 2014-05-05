@@ -1,8 +1,13 @@
 
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 #include <Simulator.h>
 
-Simulator::Simulator() {}
+Simulator::Simulator()
+{
+    std::srand(std::time(0));
+}
 
 Simulator::~Simulator() {}
 
