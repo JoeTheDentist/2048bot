@@ -1,5 +1,11 @@
 
+#ifndef _GAMEMATRIX_H_
+#define _GAMEMATRIX_H_
+
+#include <vector>
+
 typedef unsigned int uint;
+struct move_action;
 
 enum move
 {
@@ -23,6 +29,11 @@ struct position
 class GameMatrix
 {
 public:
+    /**
+     * @brief default constructor, for real game. Fill randomly two cells with 2
+     */
+    GameMatrix();
+
     /**
      * @brief GameMatrix constructor
      * @param m input matrix
@@ -56,16 +67,47 @@ public:
 
     /**
      * @brief Simulate the given move
-     * @param m
+     * @param move to simulate
      * @return new matrix with the move applied
      */
     GameMatrix simulate_move(move m) const;
+
+    /**
+     * @brief do the move
+     * @param move to apply
+     */
+    void do_move(move m);
 
     /**
      * @brief get_weight
      * @return weight
      */
     uint get_weight() const;
+
+    /**
+     * @brief get empty cells
+     * @param vector to fill with the empty positions
+     * @todo make sure no resize happen
+     */
+    void get_free_cells(std::vector<position> &v) const;
+
+    /**
+     * @brief fill randomly an empty cell accordingly to 2048 rules
+     */
+    void fill_random_cell();
+
+    /**
+     * @brief check whether there are still possible moves
+     * @return true if there is, false in the other case
+     * Relies on get_weight for future optimization.
+     */
+    bool can_move() const;
+
+    /**
+     * @brief compute the best move to play
+     * @todo implement
+     */
+    move get_best_move() const;
 
     /**
      * @brief dump in stdout
@@ -99,7 +141,25 @@ public:
      */
     void _set_at(uint i, uint j, move m, uint value);
 
-public:
+    /**
+     * @brief recursive function for get_best_move
+     * @param depth: depth of the recurtion
+     * @return best move to play
+     */
+    move_action _get_best_move(uint depth = 0) const;
+
+private:
     uint _size;
     uint _matrix[4][4];
+    std::vector<position> _tmp_vector;
 };
+
+struct move_action
+{
+    move_action(GameMatrix gm, uint weight, move m) : gm(gm), weight(weight), m(m) {}
+    GameMatrix gm;
+    uint weight;
+    move m;
+};
+
+#endif

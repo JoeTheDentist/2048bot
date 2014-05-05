@@ -1,10 +1,11 @@
 
 CGI=solver.cgi
-SRC_CGI=solver.cpp GameMatrix.cpp
+SRC_COMMON=Simulator.cpp GameMatrix.cpp
+SRC_CGI=solver.cpp ${SRC_COMMON}
 TST=test
-SRC_TST=test.cpp GameMatrix.cpp
+SRC_TST=test.cpp ${SRC_COMMON}
 
-all: ${TST} ${CGI}
+all: clean ${TST} ${CGI}
 
 ${TST}:
 	${CXX} ${SRC_TST} -I. -pthread -Wl,-Bstatic -lgtest -Wl,-Bdynamic -o ${TST}
