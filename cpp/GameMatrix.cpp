@@ -3,7 +3,9 @@
 #include <cstdlib>
 #include <GameMatrix.h>
 
-GameMatrix::GameMatrix() : _tmp_vector(16) {
+std::vector<position> GameMatrix::_tmp_vector(16);
+
+GameMatrix::GameMatrix() {
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
@@ -15,7 +17,7 @@ GameMatrix::GameMatrix() : _tmp_vector(16) {
     fill_random_cell();
 }
 
-GameMatrix::GameMatrix(const uint (&m)[4][4]) : _tmp_vector(16) {
+GameMatrix::GameMatrix(const uint (&m)[4][4]) {
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
@@ -167,12 +169,12 @@ void GameMatrix::get_free_cells(std::vector<position> &v) const
 
 void GameMatrix::fill_random_cell()
 {
-    get_free_cells(_tmp_vector);
-    if (_tmp_vector.size() == 0)
+    get_free_cells(GameMatrix::_tmp_vector);
+    if (GameMatrix::_tmp_vector.size() == 0)
     {
         dump();
     }
-    position rand_pos = _tmp_vector[rand() % _tmp_vector.size()];
+    position rand_pos = GameMatrix::_tmp_vector[rand() % GameMatrix::_tmp_vector.size()];
     // to check, I wonder if it is possible to have a 4 sometimes
     _matrix[rand_pos.i][rand_pos.j] = 2;
 }

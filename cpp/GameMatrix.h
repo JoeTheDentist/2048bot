@@ -173,7 +173,7 @@ public:
 
 private:
     uint _matrix[SIZE][SIZE];
-    std::vector<position> _tmp_vector;
+    static std::vector<position> _tmp_vector;
 };
 
 #endif
