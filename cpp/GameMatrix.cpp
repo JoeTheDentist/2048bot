@@ -110,7 +110,7 @@ bool GameMatrix::do_move(move m)
                 }
                 _set_at(i, pos, m, new_value);
                 value = new_value;
-                if (!valid && j != pos) {
+                if (j != pos) {
                     valid = true;
                 }
             }
@@ -176,11 +176,13 @@ void GameMatrix::get_free_cells(std::vector<position> &v) const
 void GameMatrix::fill_random_cell()
 {
     get_free_cells(GameMatrix::_tmp_vector);
-    if (GameMatrix::_tmp_vector.size() == 0)
+    uint size = GameMatrix::_tmp_vector.size();
+    if (size == 0)
     {
         dump();
     }
-    position rand_pos = GameMatrix::_tmp_vector[rand() % GameMatrix::_tmp_vector.size()];
+    uint rand_idx = rand() % size;
+    position rand_pos = GameMatrix::_tmp_vector[rand_idx];
     // to check, I wonder if it is possible to have a 4 sometimes
     _matrix[rand_pos.i][rand_pos.j] = 2;
 }
@@ -203,9 +205,33 @@ bool GameMatrix::can_move() const
     return false;
 }
 
-move GameMatrix::get_best_move() const
+move GameMatrix::get_best_move()
 {
-    return _get_best_move(5).m;
+    uint best_weight = M_SIZE + 1;
+    move best_move;
+
+    for (uint i=0; i<4; ++i)
+    {
+        move m = static_cast<move>(i);
+
+        // current_matrix is a simulation of a move without
+        // addition of a new tile.
+        GameMatrix current_matrix(*this);
+
+        if (!current_matrix.do_move(m)) {
+            // invalid move
+            continue;
+        }
+
+        uint current_weight = current_matrix._get_best_move(2).weight;
+        if (best_weight > current_weight)
+        {
+            best_move = m;
+            best_weight = current_weight;
+        }
+    }
+
+    return best_move;
 }
 
 void GameMatrix::dump() const
@@ -277,41 +303,104 @@ void GameMatrix::_set_at(uint i, uint j, move m, uint value)
     _matrix[p.i][p.j] = value;
 }
 
-move_action GameMatrix::_get_best_move(uint depth) const
+move_action GameMatrix::_get_best_move(uint depth)
 {
-    move best_move = static_cast<move>(std::rand() % 4);
-    GameMatrix best_matrix = simulate_move(best_move);
-    uint best_weight = 0;
-    if (*this == best_matrix)
-    {
-        best_weight = M_SIZE + 1;
+    if (depth == 0) {
+        return move_action(get_weight(), DOWN);
     }
-    else
-    {
-        best_weight = best_matrix.get_weight();
-    }
+
+    double weight = M_SIZE + 1; // matrix weight = max of move weights
+    move best_move = DOWN; // best move
+
+    // for each move
     for (uint i=0; i<4; ++i)
     {
         move m = static_cast<move>(i);
-        GameMatrix current_matrix = simulate_move(m);
-        uint current_weight = M_SIZE + 1;
-        if (*this == current_matrix)
-        {
+        double move_weight=0;
+        double current_weight=0;
+        uint alternatives=0;
+
+        // current_matrix is a simulation of a move without
+        // addition of a new tile. 
+        GameMatrix current_matrix(*this);
+
+        if (!current_matrix.do_move(m)) {
+            // invalid move
             continue;
         }
-        if (depth == 0)
-        {
-            current_weight = current_matrix.get_weight();
+
+        // look for possible spots where to add a new tile
+        for (uint i=0; i<SIZE; i++) {
+            for (uint j=0; j<SIZE; j++) {
+                if(_get_at(i, j, m) == 0) {
+                    // if previous square is empty then increment
+                    // alternatives and add current_weight to move_weight
+                    if (j>0 && _get_at(i, j-1, m) == 0) {
+                        move_weight += current_weight;
+                        alternatives++;
+                        continue;
+                    }
+
+                    // add a new tile
+                    _set_at(i, j, m, 2);
+
+                    // re-compute column/row
+                    GameMatrix refined_matrix(current_matrix);
+
+                    uint pos = 0;
+                    uint value = 0;
+                    for (uint k=0; k<SIZE; ++k)
+                    {
+                        uint new_value = _get_at(i, k, m);
+                        if (new_value == 0)
+                        {
+                            // 0, nothing to do
+                        }
+                        else if (value == new_value)
+                        {
+                            // same cells, can merge
+                            refined_matrix._set_at(i, pos, m, 2 * value);
+                            ++pos;
+                            value = 0;
+                        }
+                        else
+                        {
+                            // cannot merge
+                            if (value != 0)
+                            {
+                                ++pos;
+                            }
+                            refined_matrix._set_at(i, pos, m, new_value);
+                            value = new_value;
+                        }
+                    }
+                    // Putting 0s in the rest
+                    uint start = pos+1;
+                    if (value == 0)
+                    {
+                        start = pos;
+                    }
+                    for (uint k=start; k<SIZE; ++k)
+                    {
+                        refined_matrix._set_at(i, k, m, 0);
+                    }
+
+                    // restore
+                    _set_at(i, j, m, 0);
+
+                    current_weight = refined_matrix._get_best_move(depth - 1).weight;
+                    move_weight += current_weight;
+                    alternatives++;
+                }
+            }
         }
-        else
-        {
-            current_weight = current_matrix._get_best_move(depth - 1).weight;
-        }
-        if (best_weight > current_weight)
+
+        move_weight /= alternatives;
+        if (weight > move_weight)
         {
             best_move = m;
-            best_weight = current_weight;
+            weight = current_weight;
         }
     }
-    return move_action(best_weight, best_move);
+    return move_action(weight, best_move);
 }

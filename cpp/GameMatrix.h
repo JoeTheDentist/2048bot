@@ -131,7 +131,7 @@ public:
      * @brief compute the best move to play
      * @todo implement
      */
-    move get_best_move() const;
+    move get_best_move();
 
     /**
      * @brief dump in stdout
@@ -170,7 +170,7 @@ public:
      * @param depth: depth of the recurtion
      * @return best move to play
      */
-    move_action _get_best_move(uint depth = 0) const;
+    move_action _get_best_move(uint depth = 0);
 
 private:
     uint _matrix[SIZE][SIZE];
