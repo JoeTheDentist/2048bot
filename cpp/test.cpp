@@ -70,6 +70,18 @@ TEST(GameMatrixTest, GetBestMoveSimple)
     EXPECT_TRUE(best_move == UP || best_move == DOWN);
 }
 
+TEST(GameMatrixTest, ValidMove)
+{
+    uint matrix1[4][4]   = {{0,0,0,0},{0,0,2,0},{0,0,2,0},{0,0,2,0}};
+    uint matrix2[4][4]   = {{0,0,0,0},{0,0,2,0},{0,0,4,0},{0,0,2,0}};
+
+    GameMatrix gm1(matrix1);
+    GameMatrix gm2(matrix2);
+
+    EXPECT_TRUE(gm1.do_move(DOWN));
+    EXPECT_FALSE(gm2.do_move(DOWN));
+}
+
 TEST(SimulatorTest, SimpleGame)
 {
     Simulator s;

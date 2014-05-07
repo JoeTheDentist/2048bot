@@ -79,8 +79,9 @@ GameMatrix GameMatrix::simulate_move(move m) const
     return gm;
 }
 
-void GameMatrix::do_move(move m)
+bool GameMatrix::do_move(move m)
 {
+    bool valid = false;
     for (uint i=0; i<SIZE; ++i)
     {
         uint pos = 0;
@@ -98,6 +99,7 @@ void GameMatrix::do_move(move m)
                 _set_at(i, pos, m, 2 * value);
                 ++pos;
                 value = 0;
+                valid = true;
             }
             else
             {
@@ -108,6 +110,9 @@ void GameMatrix::do_move(move m)
                 }
                 _set_at(i, pos, m, new_value);
                 value = new_value;
+                if (!valid && j != pos) {
+                    valid = true;
+                }
             }
         }
         // Putting 0s in the rest
@@ -121,6 +126,7 @@ void GameMatrix::do_move(move m)
             _set_at(i, j, m, 0);
         }
     }
+    return valid;
 }
 
 uint GameMatrix::get_weight() const
