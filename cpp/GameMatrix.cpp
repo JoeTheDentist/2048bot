@@ -208,7 +208,7 @@ bool GameMatrix::can_move() const
 move GameMatrix::get_best_move()
 {
     uint best_weight = M_SIZE + 1;
-    move best_move;
+    move best_move = DOWN;
 
     for (uint i=0; i<4; ++i)
     {
@@ -228,6 +228,20 @@ move GameMatrix::get_best_move()
         {
             best_move = m;
             best_weight = current_weight;
+        }
+    }
+
+    // if no move looks good, then just play a valid move
+    if (best_weight == M_SIZE + 1) {
+        for (uint i=0; i<4; i++) {
+            move m = static_cast<move>(i);
+
+            GameMatrix current_matrix(*this);
+
+            if (current_matrix.do_move(m)) {
+                best_move = m;
+                break;
+            }
         }
     }
 
