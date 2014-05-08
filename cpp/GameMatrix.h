@@ -28,8 +28,8 @@ struct position
 
 struct move_action
 {
-    move_action(uint weight, move m) : weight(weight), m(m) {}
-    uint weight;
+    move_action(double weight, move m) : weight(weight), m(m) {}
+    double weight;
     move m;
 };
 
@@ -100,7 +100,7 @@ public:
      * @brief get_weight
      * @return weight
      */
-    uint get_weight() const;
+    double get_weight() const;
 
     /**
      * @brief number of free cells
@@ -157,13 +157,21 @@ public:
     uint _get_at(uint i, uint j, move m) const;
 
     /**
-     * @brief _set_at, helper function to set vale (relies on _get_pos)
+     * @brief _set_at, helper function to set value (relies on _get_pos)
      * @param i
      * @param j
      * @param m
      * @param value
      */
     void _set_at(uint i, uint j, move m, uint value);
+
+    /**
+     * @brief set value at i j of the matrix, updates free cell count
+     * @param i
+     * @param j
+     * @param value
+     */
+    void _set(uint i, uint j, uint value);
 
     /**
      * @brief recursive function for get_best_move
@@ -174,6 +182,7 @@ public:
 
 private:
     uint _matrix[SIZE][SIZE];
+    uint _free_cells;
     static std::vector<position> _tmp_vector;
 };
 
