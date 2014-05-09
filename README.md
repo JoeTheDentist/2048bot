@@ -1,4 +1,4 @@
 2048bot
 =======
 
-GreaseMonkey script to play 2048 for you (http://gabrielecirulli.github.io/2048/)
+Bot for 2048 game (http://gabrielecirulli.github.io/2048/)
