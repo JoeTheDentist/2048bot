@@ -82,6 +82,13 @@ TEST(GameMatrixTest, ValidMove)
     EXPECT_FALSE(gm2.do_move(DOWN));
 }
 
+TEST(GameMatrixTest, CanMove)
+{
+    uint ref[4][4] = {{2,16,4,8},{256,64,32,4},{32,16,128,2},{2,4,2,8}};
+    GameMatrix g_ref(ref);
+    EXPECT_FALSE(g_ref.can_move());
+}
+
 TEST(SimulatorTest, SimpleGame)
 {
     Simulator s;
@@ -91,10 +98,15 @@ TEST(SimulatorTest, SimpleGame)
 TEST(SimulatorTest, MultipleGames)
 {
     Simulator s;
-    for (int i=0; i<10; ++i)
+    double average = 0;
+    const uint max_games = 10;
+    for (int i=0; i<max_games; ++i)
     {
-        s.play();
+        average += s.play();
     }
+    average /= max_games;
+    EXPECT_TRUE(average >= 550);
+    std::cout << average << std::endl;
 }
 
 int main(int argc, char **argv)
