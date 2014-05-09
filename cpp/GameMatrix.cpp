@@ -198,7 +198,7 @@ bool GameMatrix::can_move() const
 
 move GameMatrix::get_best_move() const
 {
-    return _get_best_move(5).m;
+    return _get_best_move(3).m;
 }
 
 void GameMatrix::dump() const
@@ -298,8 +298,23 @@ move_action GameMatrix::_get_best_move(uint depth) const
         }
         else
         {
-            current_weight = depth * current_matrix._get_best_move(depth - 1).weight;
-            current_weight += current_matrix.get_weight();
+            current_weight = 0;
+            uint free_cell_count = 0;
+            for (uint i=0; i<SIZE; ++i)
+            {
+                for (uint j=0; j<SIZE; ++j)
+                {
+                    if (current_matrix._matrix[i][j] == 0)
+                    {
+                        ++free_cell_count;
+                        GameMatrix curr_mat_rand(current_matrix);
+                        curr_mat_rand._set(i, j, 2);
+                        current_weight += curr_mat_rand._get_best_move(depth - 1).weight;
+                    }
+                }
+            }
+            current_weight /= free_cell_count;
+            current_weight = depth * current_weight + current_matrix.get_weight();
             current_weight /= (depth + 1);
         }
         if (best_weight < current_weight)
