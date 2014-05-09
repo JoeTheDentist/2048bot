@@ -6,6 +6,7 @@
 
 #define SIZE 4
 #define M_SIZE 16
+#define DISSUASIVE_WEIGHT 32
 
 typedef unsigned int uint;
 struct move_action;
@@ -90,11 +91,18 @@ public:
     GameMatrix simulate_move(move m) const;
 
     /**
+     * @brief move the line
+     * @param move to apply, line to move
+     * @return true if the lines has moved
+     */
+    bool move_line(move m, int i);
+
+    /**
      * @brief do the move
      * @param move to apply
-     * @return true if move is valid (i.e. something has changed on the board)
+     * @return the number of lines that have moved
      */
-    bool do_move(move m);
+    uint do_move(move m);
 
     /**
      * @brief get_weight
@@ -131,7 +139,7 @@ public:
      * @brief compute the best move to play
      * @todo implement
      */
-    move get_best_move();
+    move get_best_move() const;
 
     /**
      * @brief dump in stdout
@@ -170,7 +178,7 @@ public:
      * @param depth: depth of the recurtion
      * @return best move to play
      */
-    move_action _get_best_move(uint depth = 0);
+    double _get_best_move(uint depth = 0) const;
 
 private:
     uint _matrix[SIZE][SIZE];

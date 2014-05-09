@@ -79,54 +79,64 @@ GameMatrix GameMatrix::simulate_move(move m) const
     return gm;
 }
 
-bool GameMatrix::do_move(move m)
+bool GameMatrix::move_line(move m, int i)
 {
     bool valid = false;
-    for (uint i=0; i<SIZE; ++i)
+    uint pos = 0;
+    uint value = 0;
+    for (uint j=0; j<SIZE; ++j)
     {
-        uint pos = 0;
-        uint value = 0;
-        for (uint j=0; j<SIZE; ++j)
+        uint new_value = _get_at(i, j, m);
+        if (new_value == 0)
         {
-            uint new_value = _get_at(i, j, m);
-            if (new_value == 0)
+            // 0, nothing to do
+        }
+        else if (value == new_value)
+        {
+            // same cells, can merge
+            _set_at(i, pos, m, 2 * value);
+            ++pos;
+            value = 0;
+            valid = true;
+        }
+        else
+        {
+            // cannot merge
+            if (value != 0)
             {
-                // 0, nothing to do
-            }
-            else if (value == new_value)
-            {
-                // same cells, can merge
-                _set_at(i, pos, m, 2 * value);
                 ++pos;
-                value = 0;
+            }
+            _set_at(i, pos, m, new_value);
+            value = new_value;
+            if (j != pos) {
                 valid = true;
             }
-            else
-            {
-                // cannot merge
-                if (value != 0)
-                {
-                    ++pos;
-                }
-                _set_at(i, pos, m, new_value);
-                value = new_value;
-                if (j != pos) {
-                    valid = true;
-                }
-            }
-        }
-        // Putting 0s in the rest
-        uint start = pos+1;
-        if (value == 0)
-        {
-            start = pos;
-        }
-        for (uint j=start; j<SIZE; ++j)
-        {
-            _set_at(i, j, m, 0);
         }
     }
+    // Putting 0s in the rest
+    uint start = pos+1;
+    if (value == 0)
+    {
+        start = pos;
+    }
+    for (uint j=start; j<SIZE; ++j)
+    {
+        _set_at(i, j, m, 0);
+    }
+
     return valid;
+}
+
+uint GameMatrix::do_move(move m)
+{
+    uint moving_lines = 0;
+    for (uint i=0; i<SIZE; ++i)
+    {
+        if (move_line(m, i)) {
+            moving_lines++;
+        }
+    }
+    return moving_lines;
 }
 
 uint GameMatrix::get_weight() const
@@ -205,9 +215,9 @@ bool GameMatrix::can_move() const
     return false;
 }
 
-move GameMatrix::get_best_move()
+move GameMatrix::get_best_move() const
 {
-    uint best_weight = M_SIZE + 1;
+    double best_weight = DISSUASIVE_WEIGHT + 1;
     move best_move = DOWN;
 
     for (uint i=0; i<4; ++i)
@@ -218,12 +228,16 @@ move GameMatrix::get_best_move()
         // addition of a new tile.
         GameMatrix current_matrix(*this);
 
-        if (!current_matrix.do_move(m)) {
+        if (current_matrix.do_move(m) == 0) {
             // invalid move
             continue;
         }
 
-        uint current_weight = current_matrix._get_best_move(2).weight;
+        double current_weight = current_matrix._get_best_move(4);
+        if (current_weight < 1) {
+            std::cout << "weight: " << current_weight << std::endl;
+            current_matrix.dump();
+        }
         if (best_weight > current_weight)
         {
             best_move = m;
@@ -232,13 +246,14 @@ move GameMatrix::get_best_move()
     }
 
     // if no move looks good, then just play a valid move
-    if (best_weight == M_SIZE + 1) {
+    if (best_weight >= DISSUASIVE_WEIGHT) {
+    std::cout << "blop" << std::endl;
         for (uint i=0; i<4; i++) {
             move m = static_cast<move>(i);
 
             GameMatrix current_matrix(*this);
 
-            if (current_matrix.do_move(m)) {
+            if (current_matrix.do_move(m) != 0) {
                 best_move = m;
                 break;
             }
@@ -317,104 +332,117 @@ void GameMatrix::_set_at(uint i, uint j, move m, uint value)
     _matrix[p.i][p.j] = value;
 }
 
-move_action GameMatrix::_get_best_move(uint depth)
+double GameMatrix::_get_best_move(uint depth) const
 {
     if (depth == 0) {
-        return move_action(get_weight(), DOWN);
+        return get_weight();
     }
 
-    double weight = M_SIZE + 1; // matrix weight = max of move weights
-    move best_move = DOWN; // best move
+    double weight = 0; 
+    double weight_matrix [SIZE][SIZE];
+    uint count = 0;
+    bool one_valid_move = false;
+
+    // init weight_matrix
+    for (uint i=0; i<SIZE; i++) {
+        for (uint j=0; j<SIZE; j++) {
+            if (_matrix[i][j] == 0) {
+                weight_matrix[i][j] = DISSUASIVE_WEIGHT;
+                count++;
+            }
+            else {
+                weight_matrix[i][j] = -1;
+            }
+        }
+    }
+
+    if (count == 0) {
+        return DISSUASIVE_WEIGHT;
+    }
 
     // for each move
     for (uint i=0; i<4; ++i)
     {
         move m = static_cast<move>(i);
-        double move_weight=0;
         double current_weight=0;
-        uint alternatives=0;
+        uint moving_lines;
+        bool valid = false;
 
         // current_matrix is a simulation of a move without
         // addition of a new tile. 
         GameMatrix current_matrix(*this);
 
-        if (!current_matrix.do_move(m)) {
+        moving_lines = current_matrix.do_move(m);
+        if (moving_lines == 0) {
             // invalid move
             continue;
         }
 
         // look for possible spots where to add a new tile
         for (uint i=0; i<SIZE; i++) {
+            current_weight = 0;
             for (uint j=0; j<SIZE; j++) {
                 if(_get_at(i, j, m) == 0) {
-                    // if previous square is empty then increment
-                    // alternatives and add current_weight to move_weight
-                    if (j>0 && _get_at(i, j-1, m) == 0) {
-                        move_weight += current_weight;
-                        alternatives++;
+                    // if previous square is empty then adding a new
+                    // tile will produce the same matrix as before.
+                    if (j>0 && _get_at(i, j-1, m) == 0 && current_weight > 0) {
+                        position p = _get_pos(i, j, m);
+                        if (current_weight < weight_matrix[p.i][p.j]) {
+                            weight_matrix[p.i][p.j] = current_weight;
+                        }
                         continue;
                     }
 
-                    // add a new tile
-                    _set_at(i, j, m, 2);
-
-                    // re-compute column/row
+                    // re-compute corresponding column/row
                     GameMatrix refined_matrix(current_matrix);
 
-                    uint pos = 0;
-                    uint value = 0;
-                    for (uint k=0; k<SIZE; ++k)
-                    {
-                        uint new_value = _get_at(i, k, m);
-                        if (new_value == 0)
-                        {
-                            // 0, nothing to do
-                        }
-                        else if (value == new_value)
-                        {
-                            // same cells, can merge
-                            refined_matrix._set_at(i, pos, m, 2 * value);
-                            ++pos;
-                            value = 0;
-                        }
-                        else
-                        {
-                            // cannot merge
-                            if (value != 0)
-                            {
-                                ++pos;
-                            }
-                            refined_matrix._set_at(i, pos, m, new_value);
-                            value = new_value;
-                        }
-                    }
-                    // Putting 0s in the rest
-                    uint start = pos+1;
-                    if (value == 0)
-                    {
-                        start = pos;
-                    }
-                    for (uint k=start; k<SIZE; ++k)
-                    {
-                        refined_matrix._set_at(i, k, m, 0);
+                    // restore column/row from initial state
+                    for (int k=0; k<SIZE; k++) {
+                        refined_matrix._set_at(i, k, m, _get_at(i, k, m));
                     }
 
-                    // restore
-                    _set_at(i, j, m, 0);
+                    // add a new tile
+                    refined_matrix._set_at(i, j, m, 2);
 
-                    current_weight = refined_matrix._get_best_move(depth - 1).weight;
-                    move_weight += current_weight;
-                    alternatives++;
+                    // move line
+                    bool has_moved = refined_matrix.move_line(m, i);
+
+                    // if adding a new tile prevents the only moving line to move
+                    // then it is an invalid move.
+                    // otherwise the move is validated and weights are updated.
+                    if (has_moved || moving_lines > 1) {
+                        valid = true;
+                        current_weight = refined_matrix._get_best_move(depth - 1);
+                        position p = _get_pos(i, j, m);
+                        if (current_weight < weight_matrix[p.i][p.j]) {
+                            weight_matrix[p.i][p.j] = current_weight;
+                        }
+                    }
                 }
             }
         }
 
-        move_weight /= alternatives;
-        if (weight > move_weight)
-        {
-            best_move = m;
-            weight = current_weight;
+        if (valid) {
+            one_valid_move = true;
         }
     }
-    return move_action(weight, best_move);
+
+    if (one_valid_move) {
+        for (uint i=0; i<SIZE; i++) {
+            for (uint j=0; j<SIZE; j++) {
+                if (weight_matrix[i][j] > -1) {
+                    weight += weight_matrix[i][j];
+                }
+            }
+        }
+        if (weight < 1) {
+            std::cout << "problem: " << weight << std::endl;
+            dump();
+        }
+        return (double) weight / (double) count;
+    }
+
+    else {
+        return DISSUASIVE_WEIGHT;
+    }
 }
