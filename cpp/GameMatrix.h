@@ -178,6 +178,7 @@ public:
 private:
     uint _matrix[SIZE][SIZE];
     uint _free_cells;
+    static const position _get_pos_table[4][SIZE][SIZE];
 };
 
 #endif

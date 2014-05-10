@@ -3,6 +3,32 @@
 #include <cstdlib>
 #include <GameMatrix.h>
 
+typedef position p;
+
+// pre-processed conversion table
+// could be computed at compile time by templates
+const position GameMatrix::_get_pos_table[4][SIZE][SIZE] =
+{{//UP
+  {p(0,0), p(1,0), p(2,0), p(3,0)},
+  {p(0,1), p(1,1), p(2,1), p(3,1)},
+  {p(0,2), p(1,2), p(2,2), p(3,2)},
+  {p(0,3), p(1,3), p(2,3), p(3,3)}},
+ {// RIGHT
+  {p(0,3), p(0,2), p(0,1), p(0,0)},
+  {p(1,3), p(1,2), p(1,1), p(1,0)},
+  {p(2,3), p(2,2), p(2,1), p(2,0)},
+  {p(3,3), p(3,2), p(3,1), p(3,0)}},
+ {// DOWN
+  {p(3,0), p(2,0), p(1,0), p(0,0)},
+  {p(3,1), p(2,1), p(1,1), p(0,1)},
+  {p(3,2), p(2,2), p(1,2), p(0,2)},
+  {p(3,3), p(2,3), p(1,3), p(0,3)}},
+ { // LEFT
+  {p(0,0), p(0,1), p(0,2), p(0,3)},
+  {p(1,0), p(1,1), p(1,2), p(1,3)},
+  {p(2,0), p(2,1), p(2,2), p(2,3)},
+  {p(3,0), p(3,1), p(3,2), p(3,3)}}};
+
 GameMatrix::GameMatrix() : _free_cells(M_SIZE) {
     for (int i=0; i<SIZE; ++i)
     {
@@ -205,47 +231,7 @@ void GameMatrix::dump() const
 
 position GameMatrix::_get_pos(uint i, uint j, move m) const
 {
-    /*
-     * i is the increment of the outer loop
-     * j is the increment of the inner loop
-     *
-     * if move LEFT then:
-     * go from left to right (j)
-     * and from top to bottom (i)
-     */
-    position pos(i, j);
-
-    if (m == RIGHT)
-    {
-        /*
-         * go from right to left (j)
-         * and from top to bottom (i)
-         */
-        pos.i = i;
-        pos.j = SIZE - j - 1;
-    }
-
-    else if (m == DOWN)
-    {
-        /*
-         * go from bottom to top (j)
-         * and from left to right (i)
-         */
-        pos.i = SIZE - j - 1;
-        pos.j = i;
-    }
-
-    else if (m == UP)
-    {
-        /*
-         * go from top to bottom (j)
-         * and from left to right (i)
-         */
-        pos.j = i;
-        pos.i = j;
-    }
-
-    return pos;
+    return GameMatrix::_get_pos_table[m][i][j];
 }
 
 uint GameMatrix::_get_at(uint i, uint j, move m) const
