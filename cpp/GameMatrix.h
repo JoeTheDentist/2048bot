@@ -2,7 +2,9 @@
 #ifndef _GAMEMATRIX_H_
 #define _GAMEMATRIX_H_
 
-#include <vector>
+// could be moved to set of helper functions
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
 
 #define SIZE 4
 #define M_SIZE 16
@@ -107,13 +109,6 @@ public:
      * @return number of free cells
      */
     uint free_cells_count() const;
-    
-    /**
-     * @brief get empty cells
-     * @param vector to fill with the empty positions
-     * @todo make sure no resize happen
-     */
-    void get_free_cells(std::vector<position> &v) const;
 
     /**
      * @brief fill randomly an empty cell accordingly to 2048 rules
@@ -183,7 +178,6 @@ public:
 private:
     uint _matrix[SIZE][SIZE];
     uint _free_cells;
-    static std::vector<position> _tmp_vector;
 };
 
 #endif

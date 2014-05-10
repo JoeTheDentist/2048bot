@@ -3,8 +3,6 @@
 #include <cstdlib>
 #include <GameMatrix.h>
 
-std::vector<position> GameMatrix::_tmp_vector(M_SIZE);
-
 GameMatrix::GameMatrix() : _free_cells(M_SIZE) {
     for (int i=0; i<SIZE; ++i)
     {
@@ -145,38 +143,30 @@ uint GameMatrix::free_cells_count() const
     return _free_cells;
 }
 
-void GameMatrix::get_free_cells(std::vector<position> &v) const
+void GameMatrix::fill_random_cell()
 {
-    // the stl documentation does not provide guarantee that the vector is not
-    // resized. It says it does not guarantee rezise so I guess it is possible
-    // to have a resize. If it is the case, find a way to prevent it.
-    // We don't want the vector to be resized.
-    // Also check whether it is O(n) or O(1), according to documentation, it is
-    // O(1) only for scalars and PODs (should be the case here).
-    // The operation have to be O(1).
-    v.clear();
+    if (unlikely(_free_cells == 0))
+    {
+        dump();
+    }
+
+    uint pos_to_add = rand() % _free_cells;
+    uint count = 0;
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
         {
             if (_matrix[i][j] == 0)
             {
-                v.push_back(position(i,j));
+                if (count == pos_to_add)
+                {
+                    // to check, I wonder if it is possible to have a 4 sometimes
+                    _set(i, j, 2);
+                }
+                ++count;
             }
         }
     }
-}
-
-void GameMatrix::fill_random_cell()
-{
-    get_free_cells(GameMatrix::_tmp_vector);
-    if (_free_cells == 0)
-    {
-        dump();
-    }
-    position rand_pos = GameMatrix::_tmp_vector[rand() % _free_cells];
-    // to check, I wonder if it is possible to have a 4 sometimes
-    _set(rand_pos.i, rand_pos.j, 2);
 }
 
 bool GameMatrix::can_move() const
