@@ -2,7 +2,6 @@
 #ifndef _SIMULATOR_H_
 #define _SIMULATOR_H_
 
-#include <vector>
 #include <GameMatrix.h>
 
 class Simulator

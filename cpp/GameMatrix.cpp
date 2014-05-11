@@ -101,6 +101,7 @@ bool GameMatrix::operator!=(const GameMatrix &gm) const
     return !(*this == gm);
 }
 
+// auto_ptr to avoid useless copy? Maybe already optimized (return value optimization)
 GameMatrix GameMatrix::simulate_move(move m) const
 {
     GameMatrix gm(*this);
@@ -227,23 +228,6 @@ void GameMatrix::dump() const
         }
         std::cout << std::endl;
     }
-}
-
-position GameMatrix::_get_pos(uint i, uint j, move m) const
-{
-    return GameMatrix::_get_pos_table[m][i][j];
-}
-
-uint GameMatrix::_get_at(uint i, uint j, move m) const
-{
-    position p = _get_pos(i,j,m);
-    return _matrix[p.i][p.j];
-}
-
-void GameMatrix::_set_at(uint i, uint j, move m, uint value)
-{
-    position p = _get_pos(i,j,m);
-    _matrix[p.i][p.j] = value;
 }
 
 void GameMatrix::_set(uint i, uint j, uint value)

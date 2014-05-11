@@ -22,7 +22,7 @@ struct position
     position(uint i = 0, uint j = 0) : i(i), j(j) {}
     uint i;
     uint j;
-    bool operator==(const position& pos)
+    bool operator==(const position& pos) const
     {
         return i==pos.i && j==pos.j;
     }
@@ -138,9 +138,9 @@ public:
      * @param i
      * @param j
      * @param m
-     * @return real position
+     * @return pointer to the real position
      */
-    position _get_pos(uint i, uint j, move m) const;
+    const position * _get_pos(uint i, uint j, move m) const;
 
     /**
      * @brief _get_at, helper function to get value (relies _get_pos)
@@ -180,5 +180,22 @@ private:
     uint _free_cells;
     static const position _get_pos_table[4][SIZE][SIZE];
 };
+
+inline const position * GameMatrix::_get_pos(uint i, uint j, move m) const
+{
+    return &GameMatrix::_get_pos_table[m][i][j];
+}
+
+inline uint GameMatrix::_get_at(uint i, uint j, move m) const
+{
+    const position *p = _get_pos(i,j,m);
+    return _matrix[p->i][p->j];
+}
+
+inline void GameMatrix::_set_at(uint i, uint j, move m, uint value)
+{
+    const position *p = _get_pos(i,j,m);
+    _matrix[p->i][p->j] = value;
+}
 
 #endif
