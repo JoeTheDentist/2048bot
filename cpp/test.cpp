@@ -105,7 +105,7 @@ TEST(SimulatorTest, MultipleGames)
         average += s.play();
     }
     average /= max_games;
-    EXPECT_TRUE(average >= 550);
+    EXPECT_TRUE(average >= 950);
     std::cout << average << std::endl;
 }
 

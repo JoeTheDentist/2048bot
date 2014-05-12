@@ -274,8 +274,8 @@ move_action GameMatrix::_get_best_move(uint depth) const
                 }
             }
             current_weight /= free_cell_count;
-            current_weight = depth * current_weight + current_matrix.get_weight();
-            current_weight /= (depth + 1);
+            current_weight = 2 * depth * current_weight + current_matrix.get_weight();
+            current_weight /= (2 * depth + 1);
         }
         if (best_weight < current_weight)
         {
