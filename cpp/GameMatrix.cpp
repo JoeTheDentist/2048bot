@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <cassert>
 #include <GameMatrix.h>
 
 std::vector<position> GameMatrix::_tmp_vector(16);
@@ -234,10 +235,6 @@ move GameMatrix::get_best_move() const
         }
 
         double current_weight = current_matrix._get_best_move(4);
-        if (current_weight < 1) {
-            std::cout << "weight: " << current_weight << std::endl;
-            current_matrix.dump();
-        }
         if (best_weight > current_weight)
         {
             best_move = m;
@@ -247,7 +244,6 @@ move GameMatrix::get_best_move() const
 
     // if no move looks good, then just play a valid move
     if (best_weight >= DISSUASIVE_WEIGHT) {
-    std::cout << "blop" << std::endl;
         for (uint i=0; i<4; i++) {
             move m = static_cast<move>(i);
 
@@ -356,9 +352,7 @@ double GameMatrix::_get_best_move(uint depth) const
         }
     }
 
-    if (count == 0) {
-        return DISSUASIVE_WEIGHT;
-    }
+    assert(count > 0);
 
     // for each move
     for (uint i=0; i<4; ++i)
@@ -434,10 +428,6 @@ double GameMatrix::_get_best_move(uint depth) const
                     weight += weight_matrix[i][j];
                 }
             }
-        }
-        if (weight < 1) {
-            std::cout << "problem: " << weight << std::endl;
-            dump();
         }
         return (double) weight / (double) count;
     }

@@ -22,6 +22,5 @@ uint Simulator::play()
         gm.fill_random_cell();
         ++count;
     }
-    gm.dump();
     return count;
 }
