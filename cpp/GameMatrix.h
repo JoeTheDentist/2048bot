@@ -2,11 +2,16 @@
 #ifndef _GAMEMATRIX_H_
 #define _GAMEMATRIX_H_
 
-#include <vector>
+#include <ostream>
+
+// could be moved to set of helper functions
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
 
 #define SIZE 4
 #define M_SIZE 16
-#define DISSUASIVE_WEIGHT 32
+#define MINIMAL_WEIGHT 0.001
+#define DEPTH 3
 
 typedef unsigned int uint;
 struct move_action;
@@ -21,7 +26,7 @@ struct position
     position(uint i = 0, uint j = 0) : i(i), j(j) {}
     uint i;
     uint j;
-    bool operator==(const position& pos)
+    bool operator==(const position& pos) const
     {
         return i==pos.i && j==pos.j;
     }
@@ -29,8 +34,8 @@ struct position
 
 struct move_action
 {
-    move_action(uint weight, move m) : weight(weight), m(m) {}
-    uint weight;
+    move_action(double weight, move m) : weight(weight), m(m) {}
+    double weight;
     move m;
 };
 
@@ -108,20 +113,13 @@ public:
      * @brief get_weight
      * @return weight
      */
-    uint get_weight() const;
+    double get_weight() const;
 
     /**
      * @brief number of free cells
      * @return number of free cells
      */
     uint free_cells_count() const;
-    
-    /**
-     * @brief get empty cells
-     * @param vector to fill with the empty positions
-     * @todo make sure no resize happen
-     */
-    void get_free_cells(std::vector<position> &v) const;
 
     /**
      * @brief fill randomly an empty cell accordingly to 2048 rules
@@ -147,13 +145,21 @@ public:
     void dump() const;
 
     /**
+     * @brief stream operator
+     * @param left_op
+     * @param game matrix to append
+     * @return
+     */
+    friend std::ostream & operator<<(std::ostream & left_op, const GameMatrix &gm);
+
+    /**
      * @brief _get_pos, helper function to have only one way to treat positions
      * @param i
      * @param j
      * @param m
-     * @return real position
+     * @return pointer to the real position
      */
-    position _get_pos(uint i, uint j, move m) const;
+    const position * _get_pos(uint i, uint j, move m) const;
 
     /**
      * @brief _get_at, helper function to get value (relies _get_pos)
@@ -165,13 +171,21 @@ public:
     uint _get_at(uint i, uint j, move m) const;
 
     /**
-     * @brief _set_at, helper function to set vale (relies on _get_pos)
+     * @brief _set_at, helper function to set value (relies on _get_pos)
      * @param i
      * @param j
      * @param m
      * @param value
      */
     void _set_at(uint i, uint j, move m, uint value);
+
+    /**
+     * @brief set value at i j of the matrix, updates free cell count
+     * @param i
+     * @param j
+     * @param value
+     */
+    void _set(uint i, uint j, uint value);
 
     /**
      * @brief recursive function for get_best_move
@@ -182,7 +196,25 @@ public:
 
 private:
     uint _matrix[SIZE][SIZE];
-    static std::vector<position> _tmp_vector;
+    uint _free_cells;
+    static const position _get_pos_table[4][SIZE][SIZE];
 };
+
+inline const position * GameMatrix::_get_pos(uint i, uint j, move m) const
+{
+    return &GameMatrix::_get_pos_table[m][i][j];
+}
+
+inline uint GameMatrix::_get_at(uint i, uint j, move m) const
+{
+    const position *p = _get_pos(i,j,m);
+    return _matrix[p->i][p->j];
+}
+
+inline void GameMatrix::_set_at(uint i, uint j, move m, uint value)
+{
+    const position *p = _get_pos(i,j,m);
+    _matrix[p->i][p->j] = value;
+}
 
 #endif

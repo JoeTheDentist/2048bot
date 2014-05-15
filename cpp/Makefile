@@ -7,7 +7,7 @@ SRC_TST=test.cpp ${SRC_COMMON}
 
 all: clean ${TST} ${CGI}
 
-${TST}:
+${TST}: clean_test
 	${CXX} -O2 ${SRC_TST} -I. -pthread -Wl,-Bstatic -lgtest -Wl,-Bdynamic -o ${TST}
 
 ${CGI}:
@@ -19,6 +19,14 @@ run: ${CGI}
 check: ${TST}
 	./${TST}
 
-clean:
-	rm -f ${CGI} ${TST} *.o
+cg:
+	${CXX} -DNO_RANDOM -g ${SRC_TST} -I. -pthread -Wl,-Bstatic -lgtest -Wl,-Bdynamic -o ${TST}
+	valgrind --tool=cachegrind ./${TST} --gtest_filter=*SimpleGame*
 
+clean: clean_test clean_cgi
+
+clean_test:
+	rm -f ${TST}
+
+clean_cgi:
+	rm -f ${CGI}

@@ -4,9 +4,33 @@
 #include <cassert>
 #include <GameMatrix.h>
 
-std::vector<position> GameMatrix::_tmp_vector(16);
+typedef position p;
 
-GameMatrix::GameMatrix() {
+// pre-processed conversion table
+// could be computed at compile time by templates
+const position GameMatrix::_get_pos_table[4][SIZE][SIZE] =
+{{//UP
+  {p(0,0), p(1,0), p(2,0), p(3,0)},
+  {p(0,1), p(1,1), p(2,1), p(3,1)},
+  {p(0,2), p(1,2), p(2,2), p(3,2)},
+  {p(0,3), p(1,3), p(2,3), p(3,3)}},
+ {// RIGHT
+  {p(0,3), p(0,2), p(0,1), p(0,0)},
+  {p(1,3), p(1,2), p(1,1), p(1,0)},
+  {p(2,3), p(2,2), p(2,1), p(2,0)},
+  {p(3,3), p(3,2), p(3,1), p(3,0)}},
+ {// DOWN
+  {p(3,0), p(2,0), p(1,0), p(0,0)},
+  {p(3,1), p(2,1), p(1,1), p(0,1)},
+  {p(3,2), p(2,2), p(1,2), p(0,2)},
+  {p(3,3), p(2,3), p(1,3), p(0,3)}},
+ { // LEFT
+  {p(0,0), p(0,1), p(0,2), p(0,3)},
+  {p(1,0), p(1,1), p(1,2), p(1,3)},
+  {p(2,0), p(2,1), p(2,2), p(2,3)},
+  {p(3,0), p(3,1), p(3,2), p(3,3)}}};
+
+GameMatrix::GameMatrix() : _free_cells(M_SIZE) {
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
@@ -18,19 +42,19 @@ GameMatrix::GameMatrix() {
     fill_random_cell();
 }
 
-GameMatrix::GameMatrix(const uint (&m)[4][4]) {
+GameMatrix::GameMatrix(const uint (&m)[SIZE][SIZE]) : _free_cells(M_SIZE) {
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
         {
-            _matrix[i][j] = m[i][j];
+            _set(i, j, m[i][j]);
         }
     }
 }
 
 GameMatrix::~GameMatrix() {}
 
-GameMatrix::GameMatrix(const GameMatrix &copy) {
+GameMatrix::GameMatrix(const GameMatrix &copy) : _free_cells(copy._free_cells) {
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
@@ -42,6 +66,7 @@ GameMatrix::GameMatrix(const GameMatrix &copy) {
 
 GameMatrix& GameMatrix::operator=(const GameMatrix &copy)
 {
+    _free_cells = copy._free_cells;
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
@@ -55,6 +80,10 @@ GameMatrix& GameMatrix::operator=(const GameMatrix &copy)
 // Could be optimized storing a hash when updating the matrix
 bool GameMatrix::operator==(const GameMatrix &gm) const
 {
+    if (_free_cells != gm._free_cells)
+    {
+        return false;
+    }
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
@@ -73,6 +102,7 @@ bool GameMatrix::operator!=(const GameMatrix &gm) const
     return !(*this == gm);
 }
 
+// auto_ptr to avoid useless copy? Maybe already optimized (return value optimization)
 GameMatrix GameMatrix::simulate_move(move m) const
 {
     GameMatrix gm(*this);
@@ -99,6 +129,7 @@ bool GameMatrix::move_line(move m, int i)
             ++pos;
             value = 0;
             valid = true;
+            ++_free_cells;
         }
         else
         {
@@ -140,68 +171,45 @@ uint GameMatrix::do_move(move m)
     return moving_lines;
 }
 
-uint GameMatrix::get_weight() const
+double GameMatrix::get_weight() const
 {
     return free_cells_count();
 }
 
-// Could be optimized storing the count at matrix update
 uint GameMatrix::free_cells_count() const
 {
-    uint count = 0;
-    for (int i=0; i<SIZE; ++i)
-    {
-        for (int j=0; j<SIZE; ++j)
-        {
-            if (_matrix[i][j] != 0)
-            {
-                ++count;
-            }
-        }
-    }
-    return count;
+    return _free_cells;
 }
 
-void GameMatrix::get_free_cells(std::vector<position> &v) const
+void GameMatrix::fill_random_cell()
 {
-    // the stl documentation does not provide guarantee that the vector is not
-    // resized. It says it does not guarantee rezise so I guess it is possible
-    // to have a resize. If it is the case, find a way to prevent it.
-    // We don't want the vector to be resized.
-    // Also check whether it is O(n) or O(1), according to documentation, it is
-    // O(1) only for scalars and PODs (should be the case here).
-    // The operation have to be O(1).
-    v.clear();
+    if (unlikely(_free_cells == 0))
+    {
+        dump();
+    }
+
+    uint pos_to_add = rand() % _free_cells;
+    uint count = 0;
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
         {
             if (_matrix[i][j] == 0)
             {
-                v.push_back(position(i,j));
+                if (count == pos_to_add)
+                {
+                    // to check, I wonder if it is possible to have a 4 sometimes
+                    _set(i, j, 2);
+                }
+                ++count;
             }
         }
     }
 }
 
-void GameMatrix::fill_random_cell()
-{
-    get_free_cells(GameMatrix::_tmp_vector);
-    uint size = GameMatrix::_tmp_vector.size();
-    if (size == 0)
-    {
-        dump();
-    }
-    uint rand_idx = rand() % size;
-    position rand_pos = GameMatrix::_tmp_vector[rand_idx];
-    // to check, I wonder if it is possible to have a 4 sometimes
-    _matrix[rand_pos.i][rand_pos.j] = 2;
-}
-
 bool GameMatrix::can_move() const
 {
-    uint free_cells = free_cells_count();
-    if (free_cells != M_SIZE)
+    if (_free_cells != 0)
     {
         return true;
     }
@@ -218,7 +226,7 @@ bool GameMatrix::can_move() const
 
 move GameMatrix::get_best_move() const
 {
-    double best_weight = DISSUASIVE_WEIGHT + 1;
+    double best_weight = 0;
     move best_move = DOWN;
 
     for (uint i=0; i<4; ++i)
@@ -234,25 +242,11 @@ move GameMatrix::get_best_move() const
             continue;
         }
 
-        double current_weight = current_matrix._get_best_move(4);
-        if (best_weight > current_weight)
+        double current_weight = current_matrix._get_best_move(DEPTH);
+        if (best_weight < current_weight)
         {
             best_move = m;
             best_weight = current_weight;
-        }
-    }
-
-    // if no move looks good, then just play a valid move
-    if (best_weight >= DISSUASIVE_WEIGHT) {
-        for (uint i=0; i<4; i++) {
-            move m = static_cast<move>(i);
-
-            GameMatrix current_matrix(*this);
-
-            if (current_matrix.do_move(m) != 0) {
-                best_move = m;
-                break;
-            }
         }
     }
 
@@ -261,71 +255,28 @@ move GameMatrix::get_best_move() const
 
 void GameMatrix::dump() const
 {
+    std::cout << *this;
+}
+
+std::ostream & operator<<(std::ostream & left_op, const GameMatrix& gm)
+{
     for (int i=0; i<SIZE; ++i)
     {
         for (int j=0; j<SIZE; ++j)
         {
-            std::cout << _matrix[i][j] << "\t";
+            left_op << gm._matrix[i][j] << "\t";
         }
-        std::cout << std::endl;
+        left_op << std::endl;
     }
 }
 
-position GameMatrix::_get_pos(uint i, uint j, move m) const
+void GameMatrix::_set(uint i, uint j, uint value)
 {
-    /*
-     * i is the increment of the outer loop
-     * j is the increment of the inner loop
-     *
-     * if move LEFT then:
-     * go from left to right (j)
-     * and from top to bottom (i)
-     */
-    position pos(i, j);
-
-    if (m == RIGHT)
+    _matrix[i][j] = value;
+    if (value != 0)
     {
-        /*
-         * go from right to left (j)
-         * and from top to bottom (i)
-         */
-        pos.i = i;
-        pos.j = SIZE - j - 1;
+        --_free_cells;
     }
-
-    else if (m == DOWN)
-    {
-        /*
-         * go from bottom to top (j)
-         * and from left to right (i)
-         */
-        pos.i = SIZE - j - 1;
-        pos.j = i;
-    }
-
-    else if (m == UP)
-    {
-        /*
-         * go from top to bottom (j)
-         * and from left to right (i)
-         */
-        pos.j = i;
-        pos.i = j;
-    }
-
-    return pos;
-}
-
-uint GameMatrix::_get_at(uint i, uint j, move m) const
-{
-    position p = _get_pos(i,j,m);
-    return _matrix[p.i][p.j];
-}
-
-void GameMatrix::_set_at(uint i, uint j, move m, uint value)
-{
-    position p = _get_pos(i,j,m);
-    _matrix[p.i][p.j] = value;
 }
 
 double GameMatrix::_get_best_move(uint depth) const
@@ -343,7 +294,7 @@ double GameMatrix::_get_best_move(uint depth) const
     for (uint i=0; i<SIZE; i++) {
         for (uint j=0; j<SIZE; j++) {
             if (_matrix[i][j] == 0) {
-                weight_matrix[i][j] = DISSUASIVE_WEIGHT;
+                weight_matrix[i][j] = MINIMAL_WEIGHT;
                 count++;
             }
             else {
@@ -380,9 +331,9 @@ double GameMatrix::_get_best_move(uint depth) const
                     // if previous square is empty then adding a new
                     // tile will produce the same matrix as before.
                     if (j>0 && _get_at(i, j-1, m) == 0 && current_weight > 0) {
-                        position p = _get_pos(i, j, m);
-                        if (current_weight < weight_matrix[p.i][p.j]) {
-                            weight_matrix[p.i][p.j] = current_weight;
+                        const position * p = _get_pos(i, j, m);
+                        if (current_weight > weight_matrix[p->i][p->j]) {
+                            weight_matrix[p->i][p->j] = current_weight;
                         }
                         continue;
                     }
@@ -407,15 +358,14 @@ double GameMatrix::_get_best_move(uint depth) const
                     if (has_moved || moving_lines > 1) {
                         valid = true;
                         current_weight = refined_matrix._get_best_move(depth - 1);
-                        position p = _get_pos(i, j, m);
-                        if (current_weight < weight_matrix[p.i][p.j]) {
-                            weight_matrix[p.i][p.j] = current_weight;
+                        const position * p = _get_pos(i, j, m);
+                        if (current_weight > weight_matrix[p->i][p->j]) {
+                            weight_matrix[p->i][p->j] = current_weight;
                         }
                     }
                 }
             }
         }
-
         if (valid) {
             one_valid_move = true;
         }
@@ -433,6 +383,6 @@ double GameMatrix::_get_best_move(uint depth) const
     }
 
     else {
-        return DISSUASIVE_WEIGHT;
+        return MINIMAL_WEIGHT;
     }
 }

@@ -7,7 +7,11 @@
 
 Simulator::Simulator()
 {
+    #ifndef NO_RANDOM
     std::srand(std::time(0));
+    #else
+    std::srand(0);
+    #endif
 }
 
 Simulator::~Simulator() {}
