@@ -197,6 +197,7 @@ public:
 private:
     uint _matrix[SIZE][SIZE];
     uint _free_cells;
+    static double _pow_cache[30];
     static const position _get_pos_table[4][SIZE][SIZE];
 };
 

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cassert>
+#include <cmath>
 #include <GameMatrix.h>
 
 typedef position p;
@@ -29,6 +30,8 @@ const position GameMatrix::_get_pos_table[4][SIZE][SIZE] =
   {p(1,0), p(1,1), p(1,2), p(1,3)},
   {p(2,0), p(2,1), p(2,2), p(2,3)},
   {p(3,0), p(3,1), p(3,2), p(3,3)}}};
+
+double GameMatrix::_pow_cache[30] = {0};
 
 GameMatrix::GameMatrix() : _free_cells(M_SIZE) {
     for (int i=0; i<SIZE; ++i)
@@ -173,7 +176,24 @@ uint GameMatrix::do_move(move m)
 
 double GameMatrix::get_weight() const
 {
-    return free_cells_count();
+    // Give more weight to higher cells.
+    double weight = 0;
+    for (int i=0; i<SIZE; ++i)
+    {
+        for (int j=0; j<SIZE; ++j)
+        {
+            if (_matrix[i][j] != 0)
+            {
+                uint log = std::log(_matrix[i][j]) / std::log(2);
+                if (unlikely(_pow_cache[log] == 0))
+                {
+                    _pow_cache[log] = std::pow(log, 10);
+                }
+                weight += _pow_cache[log];
+            }
+        }
+    }
+    return weight;
 }
 
 uint GameMatrix::free_cells_count() const
