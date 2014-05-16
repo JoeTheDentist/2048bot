@@ -2,12 +2,16 @@
 #ifndef _GAMEMATRIX_H_
 #define _GAMEMATRIX_H_
 
+#include <ostream>
+
 // could be moved to set of helper functions
 #define likely(x)       __builtin_expect((x),1)
 #define unlikely(x)     __builtin_expect((x),0)
 
 #define SIZE 4
 #define M_SIZE 16
+#define MINIMAL_WEIGHT 0.001
+#define DEPTH 3
 
 typedef unsigned int uint;
 struct move_action;
@@ -92,11 +96,18 @@ public:
     GameMatrix simulate_move(move m) const;
 
     /**
+     * @brief move the line
+     * @param move to apply, line to move
+     * @return true if the lines has moved
+     */
+    bool move_line(move m, int i);
+
+    /**
      * @brief do the move
      * @param move to apply
-     * @return true if move is valid (i.e. something has changed on the board)
+     * @return the number of lines that have moved
      */
-    bool do_move(move m);
+    uint do_move(move m);
 
     /**
      * @brief get_weight
@@ -132,6 +143,14 @@ public:
      * @brief dump in stdout
      */
     void dump() const;
+
+    /**
+     * @brief stream operator
+     * @param left_op
+     * @param game matrix to append
+     * @return
+     */
+    friend std::ostream & operator<<(std::ostream & left_op, const GameMatrix &gm);
 
     /**
      * @brief _get_pos, helper function to have only one way to treat positions
@@ -173,7 +192,7 @@ public:
      * @param depth: depth of the recurtion
      * @return best move to play
      */
-    move_action _get_best_move(uint depth = 0) const;
+    double _get_best_move(uint depth = 0) const;
 
 private:
     uint _matrix[SIZE][SIZE];
