@@ -2,10 +2,16 @@
 #ifndef _GAMEMATRIX_H_
 #define _GAMEMATRIX_H_
 
-#include <vector>
+#include <ostream>
+
+// could be moved to set of helper functions
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
 
 #define SIZE 4
 #define M_SIZE 16
+#define MINIMAL_WEIGHT 0.001
+#define DEPTH 3
 
 typedef unsigned int uint;
 struct move_action;
@@ -20,7 +26,7 @@ struct position
     position(uint i = 0, uint j = 0) : i(i), j(j) {}
     uint i;
     uint j;
-    bool operator==(const position& pos)
+    bool operator==(const position& pos) const
     {
         return i==pos.i && j==pos.j;
     }
@@ -90,11 +96,18 @@ public:
     GameMatrix simulate_move(move m) const;
 
     /**
+     * @brief move the line
+     * @param move to apply, line to move
+     * @return true if the lines has moved
+     */
+    bool move_line(move m, int i);
+
+    /**
      * @brief do the move
      * @param move to apply
-     * @return true if move is valid (i.e. something has changed on the board)
+     * @return the number of lines that have moved
      */
-    bool do_move(move m);
+    uint do_move(move m);
 
     /**
      * @brief get_weight
@@ -107,13 +120,6 @@ public:
      * @return number of free cells
      */
     uint free_cells_count() const;
-    
-    /**
-     * @brief get empty cells
-     * @param vector to fill with the empty positions
-     * @todo make sure no resize happen
-     */
-    void get_free_cells(std::vector<position> &v) const;
 
     /**
      * @brief fill randomly an empty cell accordingly to 2048 rules
@@ -139,13 +145,21 @@ public:
     void dump() const;
 
     /**
+     * @brief stream operator
+     * @param left_op
+     * @param game matrix to append
+     * @return
+     */
+    friend std::ostream & operator<<(std::ostream & left_op, const GameMatrix &gm);
+
+    /**
      * @brief _get_pos, helper function to have only one way to treat positions
      * @param i
      * @param j
      * @param m
-     * @return real position
+     * @return pointer to the real position
      */
-    position _get_pos(uint i, uint j, move m) const;
+    const position * _get_pos(uint i, uint j, move m) const;
 
     /**
      * @brief _get_at, helper function to get value (relies _get_pos)
@@ -178,12 +192,29 @@ public:
      * @param depth: depth of the recurtion
      * @return best move to play
      */
-    move_action _get_best_move(uint depth = 0) const;
+    double _get_best_move(uint depth = 0) const;
 
 private:
     uint _matrix[SIZE][SIZE];
     uint _free_cells;
-    static std::vector<position> _tmp_vector;
+    static const position _get_pos_table[4][SIZE][SIZE];
 };
+
+inline const position * GameMatrix::_get_pos(uint i, uint j, move m) const
+{
+    return &GameMatrix::_get_pos_table[m][i][j];
+}
+
+inline uint GameMatrix::_get_at(uint i, uint j, move m) const
+{
+    const position *p = _get_pos(i,j,m);
+    return _matrix[p->i][p->j];
+}
+
+inline void GameMatrix::_set_at(uint i, uint j, move m, uint value)
+{
+    const position *p = _get_pos(i,j,m);
+    _matrix[p->i][p->j] = value;
+}
 
 #endif

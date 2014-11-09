@@ -7,10 +7,10 @@ TEST(GameMatrixTest, GetPosTest)
 {
     uint matrix[4][4]   = {{0,0,0,0},{0,2,0,0},{0,0,2,0},{0,0,0,0}};
     GameMatrix gm(matrix);
-    EXPECT_TRUE(gm._get_pos(2, 3, UP) == position(3, 2));
-    EXPECT_TRUE(gm._get_pos(2, 3, DOWN) == position(0, 2));
-    EXPECT_TRUE(gm._get_pos(2, 3, RIGHT) == position(2, 0));
-    EXPECT_TRUE(gm._get_pos(2, 3, LEFT) == position(2, 3));
+    EXPECT_TRUE(*gm._get_pos(2, 3, UP) == position(3, 2));
+    EXPECT_TRUE(*gm._get_pos(2, 3, DOWN) == position(0, 2));
+    EXPECT_TRUE(*gm._get_pos(2, 3, RIGHT) == position(2, 0));
+    EXPECT_TRUE(*gm._get_pos(2, 3, LEFT) == position(2, 3));
 }
 
 TEST(GameMatrixTest, SimulateMoveSimple)
@@ -41,7 +41,7 @@ TEST(GameMatrixTest, SimulateMoveMoreComplex)
     {
         GameMatrix g_exp(exp[m]);
         GameMatrix g_res = g_ref.simulate_move((move)m);
-        EXPECT_TRUE(g_exp == g_res);
+        EXPECT_TRUE(g_exp == g_res) << g_exp << "differs from" << std::endl << g_res;
     }
 }
 
@@ -60,14 +60,6 @@ TEST(GameMatrixTest, SimulateMoveUniformMatrix)
         EXPECT_TRUE(g_new == g_exp);
         curr_mat = g_new;
     }
-}
-
-TEST(GameMatrixTest, GetBestMoveSimple)
-{
-    uint ref[4][4]   = {{0,0,0,0},{0,0,2,0},{0,0,2,0},{0,0,0,0}};
-    GameMatrix g_ref(ref);
-    move best_move = g_ref.get_best_move();
-    EXPECT_TRUE(best_move == UP || best_move == DOWN);
 }
 
 TEST(GameMatrixTest, ValidMove)
@@ -105,7 +97,7 @@ TEST(SimulatorTest, MultipleGames)
         average += s.play();
     }
     average /= max_games;
-    EXPECT_TRUE(average >= 550);
+    EXPECT_TRUE(average >= 950);
     std::cout << average << std::endl;
 }
 

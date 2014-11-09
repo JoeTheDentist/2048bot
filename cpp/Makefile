@@ -19,6 +19,10 @@ run: ${CGI}
 check: ${TST}
 	./${TST}
 
+cg:
+	${CXX} -DNO_RANDOM -g ${SRC_TST} -I. -pthread -Wl,-Bstatic -lgtest -Wl,-Bdynamic -o ${TST}
+	valgrind --tool=cachegrind ./${TST} --gtest_filter=*SimpleGame*
+
 clean: clean_test clean_cgi
 
 clean_test:
